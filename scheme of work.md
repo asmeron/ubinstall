@@ -1,48 +1,67 @@
 # Инсталляция
 
-При запуске инсталлятора выводится окно приветствия с лицензионным соглашением.
-После попадаем на меню выбора установки редакций операционных систем.
-Это меню формируется из результатов обработки скрипта, который обходит папки с редакциями ОС и проверятет в них наличие файлоф os-release.
-Структура os-release файла в каталоге :
+1. Запуск инсталлятора.
+2. Выводится окно приветствия с лицензионным соглашением.
+3. Вывод меню выбора установки редакций операционных систем.
+
+Меню формируется из результатов обработки скрипта, который обходит папки с редакциями ОС и проверятет в них наличие файлов os-release.
+Структура os-release файла в каталоге (одни файл на каталог с редакцией системы):
 ```
 NAME="UBLinux"
+VARIANT="Server"
 VERSION="Arc.01 (Adromeda)"
 ID=ublinux
 ID_LIKE=archlinux
 PRETTY_NAME="UBLinux Arc.01"
 VERSION_ID="Arc.01"
 HOME_URL="http://ublinux.com/"
-SUPPORT_URL="http://help.ublinux.com/"
-BUG_REPORT_URL="http://bugs.launchpad.net/ublinux/"
 UBUNTU_CODENAME=andromeda
 ```
 ```
 NAME="UBLinux"
-VERSION="Alp.01 (Cassiopeia)"
+VARIANT="Desktop Enterprise"
+VERSION="Alp.02 (Antlia)"
 ID=ublinux
 ID_LIKE=alpinelinux
 PRETTY_NAME="UBLinux Alp.01"
 VERSION_ID="Alp.01"
 HOME_URL="http://ublinux.com/"
-SUPPORT_URL="http://help.ublinux.com/"
-BUG_REPORT_URL="http://bugs.launchpad.net/ublinux/"
-UBUNTU_CODENAME=cassiopeia
+UBUNTU_CODENAME=antlia
 ```
 ```
 NAME="UBLinux"
-VERSION="Deb.01 (Cassiopeia)"
+VARIANT="Desktop Basic"
+VERSION="Deb.03 (Apus)"
 ID=ublinux
 ID_LIKE=debian
 PRETTY_NAME="UBLinux Deb.01"
 VERSION_ID="Deb.01"
 HOME_URL="http://ublinux.com/"
-SUPPORT_URL="http://help.ublinux.com/"
-BUG_REPORT_URL="http://bugs.launchpad.net/ublinux/"
-UBUNTU_CODENAME=cassiopeia
+UBUNTU_CODENAME=apus
 ```
-Необходимо редакции доделать (Server, Desktop).
-
-Структура каталогов на носителе:
+```
+NAME="UBLinux Adara"
+VARIANT="Server"
+VERSION="Arc.01 (Adromeda)"
+ID=ublinux
+ID_LIKE=archlinux
+PRETTY_NAME="UBLinux Arc.01"
+VERSION_ID="Arc.01"
+HOME_URL="http://ublinux.com/"
+UBUNTU_CODENAME=andromeda
+```
+```
+NAME="UBLinux Adara"
+VARIANT="Desktop Enterprise"
+VERSION="Alp.04 (Aquila)"
+ID=ublinux
+ID_LIKE=alpinelinux
+PRETTY_NAME="UBLinux Alp.01"
+VERSION_ID="Alp.01"
+HOME_URL="http://ublinux.com/"
+UBUNTU_CODENAME=aquila
+```
+Структура каталогов на носителе (локальный или сетевой):
 Корень-
 
 Данные, передающиеся с клиентской машины на сервер:
