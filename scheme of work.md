@@ -111,16 +111,15 @@ UBUNTU_CODENAME=aquila
 }
 ```
 Где
-"XXXXXXXX-XXXXXXXX-XXXXXXXX-XXXXXXXX" - ключ лицензии, сгенерированный случайным образом;
-"org" - название организации, владельца лицензии;
-"date" - Дата окончания срока действия лицензии (дата окончания срока поддержки);
-"type" - код типа лицензии (Server, Enterprise, Basic или их комбинации).
-* 01 - UBLinux Desktop Basic
-* 02 - UBLinux Desktop Enterpise
-* 03 - UBLinux Server
-
-* 11 - UBLinux Adara Desktop Enterpise
-* 12 - UBLinux Adara Server
+* "XXXXXXXX-XXXXXXXX-XXXXXXXX-XXXXXXXX" - ключ лицензии, сгенерированный случайным образом;
+* "org" - название организации, владельца лицензии;
+* "date" - Дата окончания срока действия лицензии (дата окончания срока поддержки);
+* "type" - код типа лицензии (Server, Enterprise, Basic или их комбинации).
+  * 01 - UBLinux Desktop Basic
+  * 02 - UBLinux Desktop Enterpise
+  * 03 - UBLinux Server
+  * 11 - UBLinux Adara Desktop Enterpise
+  * 12 - UBLinux Adara Server
 
 3. Извлечь данные: дата окончания лицензии, тип лицензии;
 4. Если дата окончания лицензии пройдена, формируем ответ клиенту, в котором содержится отказ;
