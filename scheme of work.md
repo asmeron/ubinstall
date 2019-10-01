@@ -117,7 +117,8 @@ UBUNTU_CODENAME=aquila
 * "type" - код типа лицензии (Server, Enterprise, Basic или их комбинации).
   * 01 - UBLinux Desktop Basic
   * 02 - UBLinux Desktop Enterpise
-  * 03 - UBLinux Server
+  * 03 - UBLinux Server  
+  
   * 11 - UBLinux Adara Desktop Enterpise
   * 12 - UBLinux Adara Server
 
