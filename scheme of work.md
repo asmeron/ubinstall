@@ -110,7 +110,11 @@ UBUNTU_CODENAME=aquila
 }
 }
 ```
-Где "type" - код типа лицензии (Server, Enterprise, Basic или их комбинации).
+Где
+"XXXXXXXX-XXXXXXXX-XXXXXXXX-XXXXXXXX" - ключ лицензии, сгенерированный случайным образом;
+"org" - название организации, владельца лицензии;
+"date" - Дата окончания срока действия лицензии (дата окончания срока поддержки);
+"type" - код типа лицензии (Server, Enterprise, Basic или их комбинации).
 * 01 - UBLinux Desktop Basic
 * 02 - UBLinux Desktop Enterpise
 * 03 - UBLinux Server
