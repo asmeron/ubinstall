@@ -36,6 +36,41 @@ fi
 if [ "$mode" == "Manual Mode" ]; then
 
 	#_dia_ask_string "Enter the size parent MB" "1024"
-	cfdisk $dev
+	point=("Create new parents" "" "Format Parent" "" "Back" "")
+	_dia_ask_option no "Choose Action" "\n\nPlease Select Action" required "${point[@]}" || return 1
+	choose=$ANSWER_OPTION
+
+	if [ "$choose" == "Create new parents" ]; then
+
+		_dia_ask_number "Enter the count parents" "1"
+		count=$ANSWER_NUMBER
+
+		for (( i=1; i <= $count; i=i+1 ))
+		do
+			_dia_ask_number "Enter the size $i parent MB" "10"
+			parent=(${parent[@]} $ANSWER_NUMBER)
+
+		done
+
+		disk=""
+
+		for i in "${parent[@]}"
+		do
+
+			size=$i
+			let "size=size * 2048"
+			disk+=",$size\n"
+
+		done
+
+		parent=()
+
+		_dia_inform "Please, Wait..."
+		echo -e $disk | sfdisk $dev >> log.txt
+		_dia_notify  "Parents Create!"
+
+	fi
+
+
 
 fi
