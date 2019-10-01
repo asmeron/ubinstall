@@ -74,9 +74,6 @@ UBUNTU_CODENAME=aquila
 Версия системы, на это отводится 4 символа (первые два символа - основная версия, последние два - минорная версия). Например, 0122;
 Блоки разделяются двоеточием.
 
-Структура данных лицензии:
-04:23012020:0122
-
 Структура файла с зашифрованными данными лицензии на клиенте:
 8F0763A7-9630A7CC-7001177E-E199430C
 
@@ -91,32 +88,35 @@ UBUNTU_CODENAME=aquila
 {
 "org": "John Doe",
 "date": "01.01.2020",
-"type": "Server,Enterprise",
-"version": "1.20"
+"type": "03,02",
 },
 "6A1478C2-0367F3DD-5001673D-A400279F":
 {
 "org": "Vasya Pupkin",
 "date": "01.01.2025",
-"type": "Enterprise",
-"version": "1.18"
+"type": "02",
 }
 "8F0553A7-9630A7CC-7001177E-E192230C":
 {
 "org": "Tobias Boon",
 "date": "01.01.2022",
-"type": "Server,Enterprise",
-"version": "1.20"
+"type": "11,12",
 },
 "6A6АF78C2-0367F3DD-5008873D-A40C279F":
 {
 "org": "To Yama To Kanawa",
 "date": "01.01.2030",
-"type": "Enterprise",
-"version": "1.18"
+"type": "12",
 }
 }
 ```
+Где "type" - код типа лицензии (Server, Enterprise, Basic или их комбинации).
+* 01 - UBLinux Desktop Basic
+* 02 - UBLinux Desktop Enterpise
+* 03 - UBLinux Server
+
+* 11 - UBLinux Adara Desktop Enterpise
+* 12 - UBLinux Adara Server
 
 3. Извлечь данные: дата окончания лицензии, тип лицензии;
 4. Если дата окончания лицензии пройдена, формируем ответ клиенту, в котором содержится отказ;
