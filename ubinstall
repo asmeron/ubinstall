@@ -2,12 +2,12 @@
 
 path_run=$(dirname $0)
 
-. ./inc/libui.sh
+. ./libui-sh/libui.sh
 
 TITLE="UBLinux Installation"
 .
 
-. ./hooks/main.sh
+. ./modules/main.sh
 i=0
 
 while read line;
@@ -17,7 +17,7 @@ do
 	hooks[$i]=""
 	(( i++ ))
 
-done < "./hooks/info.txt"
+done < "./modules/info.txt"
 
 hooks[$i]=Exit
 (( i++ ))
@@ -31,9 +31,9 @@ do
 
 	if [ "$answer" != "Exit" ]; then
 
-		hook=$(cat ./hooks/info.txt | grep "$answer" | cut -d'|' -f2)
+		hook=$(cat ./modules/info.txt | grep "$answer" | cut -d'|' -f2)
 		hook=${hook// }
-		. "./hooks/$hook"
+		. "./modules/$hook"
 		i=0
 
 
