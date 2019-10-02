@@ -46,7 +46,7 @@ get_list_components()
 
 get_list_distrub()
 {
-	list_distrub=("Ublinux Desktop" "" "Ublinux Server" "")
+	list_distrub=("Ublinux Desktop" "" "Ublinux Server" "" "Network Install" "")
 }
 
 install_components()

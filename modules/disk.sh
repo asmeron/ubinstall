@@ -5,6 +5,7 @@ get_list_block_device()
 	local temp i
 	i=0
 	temp=(${list_dev_r[@]} $(ls /dev/sd*))
+	list_dev=()
 
 	for line in "${temp[@]}";
 	do
@@ -27,7 +28,12 @@ auto_prepare_disk()
 
 }
 
-manual_prepare_disk()
+manual_partitioning_disk()
 {
 	cfdisk $dev
+}
+
+create_swap()
+{
+	echo "Create swap file $1 Mb" >> log.txt
 }
