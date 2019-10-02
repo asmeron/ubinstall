@@ -1,4 +1,0 @@
-Prepare Hard Disk | disk.sh
-Install components | componets.sh
-Configurate system | configurate.sh
-Install bootloader | bootloader.sh

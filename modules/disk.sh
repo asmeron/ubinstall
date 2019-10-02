@@ -1,41 +1,39 @@
 #!/bin/bash
 
+get_list_block_device()
+{
+	local temp i
+	i=0
+	temp=(${list_dev_r[@]} $(ls /dev/sd*))
+	list_dev=()
 
-disk=";"
-file_system="ext4"
+	for line in "${temp[@]}";
+	do
 
-ls /dev/sd* > dev.txt
+		list_dev[$i]=$line
+		(( i++ ))
+		list_dev[$i]=""
+		(( i++ ))
 
-while read line;
-do
-	dev[$i]=$(echo $line | cut -d'|' -f1)
-	(( i++ ))
-	dev[$i]=""
-	(( i++ ))
+	done
+}
 
-done < "dev.txt"
-
-
-_dia_ask_option no "Menu Device" "\n\nPlease choose device." required "${dev[@]}" || return 1
-dev=$ANSWER_OPTION
-
-point=("Auto Mode" "" "Manual Mode" "" "Back" "")
-_dia_ask_option no "Choose Mode" "\n\nPlease Select Mode" required "${point[@]}" || return 1
-mode=$ANSWER_OPTION
-
-
-if [ "$mode" == "Auto Mode" ]; then
+auto_prepare_disk()
+{
 
 	_dia_inform "Please, Wait..."
-	echo $disk | sfdisk $dev >> log.txt
-	mkfs.$file_system -F ${dev}1 >> log.txt
+	echo ";" | sfdisk $dev >> log.txt
+	mkfs.ext4 -F ${dev}1 >> log.txt
 	_dia_notify  "Disk Prepare!"
 
-fi
+}
 
-if [ "$mode" == "Manual Mode" ]; then
-
-	#_dia_ask_string "Enter the size parent MB" "1024"
+manual_partitioning_disk()
+{
 	cfdisk $dev
+}
 
-fi
+create_swap()
+{
+	echo "Create swap file $1 Mb" >> log.txt
+}

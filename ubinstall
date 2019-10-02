@@ -1,44 +1,160 @@
 #!/bin/bash
 
-path_run=$(dirname $0)
-
 . ./libui-sh/libui.sh
 
 TITLE="UBLinux Installation"
-.
+Host="ublinux-sample"
+Domen="local.domean"
+User_name="superadmin"
+User_pass="123"
+base_point=("Prepare Hard Disk" "" "Install components" "" "Configurate system" "" "Install bootloader" "" "Exit" "")
 
-. ./modules/main.sh
-i=0
+base_menu()
+{
 
-while read line;
-do
-	hooks[$i]=$(echo $line | cut -d'|' -f1)
-	(( i++ ))
-	hooks[$i]=""
-	(( i++ ))
-
-done < "./modules/info.txt"
-
-hooks[$i]=Exit
-(( i++ ))
-hooks[$i]=""
-i=0
-
-while [ $i -lt 1 ]
-do
-	_dia_ask_option no "Base Menu" "\n\nPlease choose action." required "${hooks[@]}" || return 1
+	_dia_ask_option no "Base Menu" "\n\nPlease choose action." required "${base_point[@]}" || return 1
 	answer=$ANSWER_OPTION
 
-	if [ "$answer" != "Exit" ]; then
+	case $answer in
+		"Prepare Hard Disk") interactive_disk ;;
+		"Install components") interactive_components ;;
+		"Configurate system") interactive_configurate ;;
+		"Install bootloader") interactive_bootloader ;;
+		"Exit") exit;;
+	esac
 
-		hook=$(cat ./modules/info.txt | grep "$answer" | cut -d'|' -f2)
-		hook=${hook// }
-		. "./modules/$hook"
-		i=0
+	base_menu
+
+}
+
+interactive_disk()
+{
+	local point choose_device
+	. ./modules/disk.sh
 
 
-	else
-		rm *.txt
-		i=1
+	point=("Auto Mode" "" "Manual Mode" "")
+	_dia_ask_option no "Choose Mode" "\n\nPlease Select Mode" required "${point[@]}" || base_menu
+	mode=$ANSWER_OPTION
+
+	get_list_block_device
+	list_dev_menu=("${list_dev[@]}" "Other" "" "View /Dev" "")
+
+	choose_device()
+	{
+		_dia_ask_option no "Menu Device" "\n\nPlease choose device." required "${list_dev_menu[@]}" || interactive_disk
+		dev=$ANSWER_OPTION
+
+		if [ "$dev" == "Other" ]; then
+			_dia_ask_string "Enter the block device" "/dev/sda" || choose_device
+			dev=$ANSWER_STRING
+		fi
+
+		if [ "$dev" == "View /Dev" ]; then
+			_dia_notify "$(ls /dev)"
+			choose_device
+		fi
+	}
+
+	choose_device
+
+	manual_menu()
+	{
+		action_list=("Partitioning Disk" "" "Format Partition" "" "Create Swap File" "" "Complite" "")
+		_dia_ask_option no "Choose action" "\n\nPlease choose action." required "${action_list[@]}" || choose_device
+		action=$ANSWER_OPTION
+
+		case $action in
+			"Partitioning Disk") manual_partitioning_disk;;
+			"Format Partition") choose_filesystem;;
+			"Create Swap File") swap_dialog;;
+			"Complite") base_menu;;
+		esac
+
+		manual_menu
+	}
+
+	swap_dialog()
+	{
+		_dia_ask_number "Enter the size swap file (MB)" "1" || manual_menu
+		swap_size=$ANSWER_NUMBER
+		create_swap $swap_size
+	}
+
+	choose_filesystem()
+	{
+		local fs i j list_dev_ch
+		j=0
+
+		fs_list=("ext4"  "" "fat32" "")
+		_dia_ask_option no "Choose File System" "\n\nPlease choose File System." required "${fs_list[@]}" || manual_menu
+		fs=$ANSWER_OPTION
+
+		for (( i=0; i <= ${#list_dev[*]}; i=i+2 ))
+		do
+
+			list_dev_ch[$j]=${list_dev[$i]}
+			(( j++ ))
+			list_dev_ch[$j]=.
+			(( j++ ))
+			list_dev_ch[$j]=OFF
+			(( j++ ))
+
+		done
+		echo "${list_dev_ch[@]}" > log.txt
+
+		_dia_ask_checklist "Select Partition" 0 "${list_dev_ch[@]}" || manual_menu
+		pat=("${ANSWER_CHECKLIST[@]}")
+
+	}
+
+	case $mode in
+		"Auto Mode") auto_prepare_disk;;
+		"Manual Mode") manual_menu;;
+	esac
+
+}
+
+interactive_components()
+{
+	. ./modules/componets.sh
+
+	get_list_distrub
+	_dia_ask_option no "Choose distrub" "\n\nPlease Select distrub." required "${list_distrub[@]}" || return 1
+
+	distr=$ANSWER_OPTION
+	distr=$(echo $distr | cut -d' ' -f2)
+	distr=${distr,,}
+
+	get_list_components
+	_dia_ask_checklist "Select Package" 0 "${list_comp_name[@]}" || return 1
+	comp=("${ANSWER_CHECKLIST[@]}")
+
+	if [ "$comp" != "" ]; then
+		install_components
 	fi
-done
+}
+
+interactive_configurate()
+{
+	_dia_ask_string "Enter the Host Name" "ublinux-sample"
+	Host=$ANSWER_STRING
+
+	_dia_ask_string "Enter the Domen" "local.domean"
+	Domen=$ANSWER_STRING
+
+	_dia_ask_string "Enter the User Name" "superadmin"
+	User_name=$ANSWER_STRING
+
+	_dia_ask_string "Enter the password for $User_name" "123"
+	User_pass=$ANSWER_STRING
+
+}
+
+interactive_bootloader()
+{
+	_dia_notify "Choose bootloader"
+}
+
+_dia_notify  "Welcome to install UBLinux"
+base_menu
