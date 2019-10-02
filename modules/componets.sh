@@ -2,6 +2,8 @@
 
 inst()
 {
+	local i
+	
 	for i in $@
 	do
 
@@ -10,30 +12,61 @@ inst()
 	done
 }
 
+get_list_components()
+{
+	local i line
 
-i=0
+	i=0
 
-while read line;
-do
-	comp[$i]=$(echo $line | cut -d'|' -f1)
-	(( i++ ))
-	comp[$i]=.
-	(( i++ ))
-	comp[$i]=OFF
-	(( i++ ))
+	while read line;
+	do
+		list_comp[$i]=$(echo $line | grep "\[$distr\]" | cut -d'|' -f1,2)
+		
+		if [ "${list_comp[$i]}" != "" ]; then
+			(( i++ ))
+		fi
 
-done < "temp.txt"
+	done < "./etc/components.txt"
 
-_dia_ask_checklist "Select Package groups\nDo not deselect base unless you know what you're doing!" 0 "${comp[@]}" || return 1
-choose=("${ANSWER_CHECKLIST[@]}")
+	i=0
 
-inst ./components/kernel
-for i in "${choose[@]}"
-do
+	for line in "${list_comp[@]}";
+	do
 
-	path=$(cat "temp.txt" | grep "$i" | cut -d'|' -f2)
-	path=${path/ /}
-	inst $path
+		list_comp_name[$i]=$(echo $line | cut -d'|' -f1)
+		(( i++ ))
+		list_comp_name[$i]=.
+		(( i++ ))
+		list_comp_name[$i]=OFF
+		(( i++ ))
 
-done
+	done
+}
+
+
+get_list_distrub()
+{
+	list_distrub=("Ublinux Desktop" "" "Ublinux Server" "")
+}
+
+install_components()
+{
+	local i j
+
+	inst ./components/kernel
+	for j in "${comp[@]}"
+	do
+
+		while [[ "${list_comp[$i]}" != "$j"* ]]; 
+		do
+			(( i++ ))
+		done
+	
+		path=$(echo "${list_comp[$i]}" | grep "$j" | cut -d'|' -f2)
+		path=${path/ /}
+		i=0
+		inst $path
+
+	done
+}
 

@@ -1,44 +1,100 @@
 #!/bin/bash
 
-path_run=$(dirname $0)
-
 . ./libui-sh/libui.sh
 
 TITLE="UBLinux Installation"
-.
+Host="ublinux-sample"
+Domen="local.domean"
+User_name="superadmin"
+User_pass="123"
+base_point=("Prepare Hard Disk" "" "Install components" "" "Configurate system" "" "Install bootloader" "" "Exit" "")
 
-. ./modules/main.sh
-i=0
+base_menu()
+{
+	local i
+	i=0
 
-while read line;
-do
-	hooks[$i]=$(echo $line | cut -d'|' -f1)
-	(( i++ ))
-	hooks[$i]=""
-	(( i++ ))
+	while [ $i -lt 1 ]
+	do
 
-done < "./modules/info.txt"
+		_dia_ask_option no "Base Menu" "\n\nPlease choose action." required "${base_point[@]}" || return 1
+		answer=$ANSWER_OPTION
 
-hooks[$i]=Exit
-(( i++ ))
-hooks[$i]=""
-i=0
+		case $answer in
+			"Prepare Hard Disk") interactive_disk ;;
+			"Install components") interactive_components ;;
+			"Configurate system") interactive_configurate ;;
+			"Install bootloader") interactive_bootloader ;;
+			*) i=1;;
+		esac
 
-while [ $i -lt 1 ]
-do
-	_dia_ask_option no "Base Menu" "\n\nPlease choose action." required "${hooks[@]}" || return 1
-	answer=$ANSWER_OPTION
+	done
+}
 
-	if [ "$answer" != "Exit" ]; then
+interactive_disk()
+{
+	local point choose_device
 
-		hook=$(cat ./modules/info.txt | grep "$answer" | cut -d'|' -f2)
-		hook=${hook// }
-		. "./modules/$hook"
-		i=0
+	choose_device()
+	{
+		_dia_ask_option no "Menu Device" "\n\nPlease choose device." required "${list_dev[@]}" || return 1
+		dev=$ANSWER_OPTION
+	}
 
+	. ./modules/disk.sh
 
-	else
-		rm *.txt
-		i=1
-	fi
-done
+	get_list_block_device
+	choose_device
+
+	point=("Auto Mode" "" "Manual Mode" "" "Back" "")
+	_dia_ask_option no "Choose Mode" "\n\nPlease Select Mode" required "${point[@]}" || choose_device
+	mode=$ANSWER_OPTION
+
+	case $mode in
+			"Auto Mode") auto_prepare_disk;;
+			"Manual Mode") manual_prepare_disk;;
+			"Back") choose_device;;
+	esac
+}
+
+interactive_components()
+{
+	. ./modules/componets.sh
+
+	get_list_distrub
+	_dia_ask_option no "Choose distrub" "\n\nPlease Select distrub." required "${list_distrub[@]}" || return 1
+
+	distr=$ANSWER_OPTION
+	distr=$(echo $distr | cut -d' ' -f2)
+	distr=${distr,,}
+
+	get_list_components
+	_dia_ask_checklist "Select Package" 0 "${list_comp_name[@]}" || return 1
+	comp=("${ANSWER_CHECKLIST[@]}")
+
+	install_components
+}
+
+interactive_configurate()
+{
+	_dia_ask_string "Enter the Host Name" "ublinux-sample"
+	Host=$ANSWER_STRING
+
+	_dia_ask_string "Enter the Domen" "local.domean"
+	Domen=$ANSWER_STRING
+
+	_dia_ask_string "Enter the User Name" "superadmin"
+	User_name=$ANSWER_STRING
+
+	_dia_ask_string "Enter the password for $User_name" "123"
+	User_pass=$ANSWER_STRING
+
+}
+
+interactive_bootloader()
+{
+	_dia_notify "Choose bootloader"
+}
+
+_dia_notify  "Welcome to install UBLinux"
+base_menu
