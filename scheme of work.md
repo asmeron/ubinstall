@@ -8,61 +8,73 @@
 Структура os-release файла в каталоге (один файл на каталог с редакцией системы):
 ```
 NAME="UBLinux"
+ID=ublinux
 VARIANT="Server"
-VERSION="Arc.01 (Adromeda)"
-ID=ublinux
-ID_LIKE=archlinux
-PRETTY_NAME="UBLinux Arc.01"
-VERSION_ID="Arc.01"
+VERSION="AR.03"
+VERSION_ID="ar.03"
+VERSION_CODENAME=andromeda
+ID_LIKE=arch
+PRETTY_NAME="UBLinux Server AR.01 (Andromeda)"
+BUILD_ID="02.10.2019"
+ANSI_COLOR="1;34"
 HOME_URL="http://ublinux.com/"
-UBUNTU_CODENAME=andromeda
 ```
 ```
 NAME="UBLinux"
+ID=ublinux
 VARIANT="Desktop Enterprise"
-VERSION="Alp.02 (Antlia)"
-ID=ublinux
-ID_LIKE=alpinelinux
-PRETTY_NAME="UBLinux Alp.01"
-VERSION_ID="Alp.01"
+VERSION="AL.02"
+VERSION_ID="al.02"
+VERSION_CODENAME=antlia
+ID_LIKE=alpine
+PRETTY_NAME="UBLinux Desktop Enterprise AL.02 (Antlia)"
+BUILD_ID="02.11.2019"
+ANSI_COLOR="1;34"
 HOME_URL="http://ublinux.com/"
-UBUNTU_CODENAME=antlia
 ```
 ```
 NAME="UBLinux"
+ID=ublinux
 VARIANT="Desktop Basic"
-VERSION="Deb.03 (Apus)"
-ID=ublinux
+VERSION="DE.03"
+VERSION_ID="de.03"
+VERSION_CODENAME=apus
 ID_LIKE=debian
-PRETTY_NAME="UBLinux Deb.01"
-VERSION_ID="Deb.01"
+PRETTY_NAME="UBLinux Desktop Basic DE.03 (Apus)"
+BUILD_ID="02.12.2019"
+ANSI_COLOR="1;34"
 HOME_URL="http://ublinux.com/"
-UBUNTU_CODENAME=apus
 ```
 ```
 NAME="UBLinux Adara"
+ID=ublinux
 VARIANT="Server"
-VERSION="Arc.01 (Adromeda)"
-ID=ublinux
-ID_LIKE=archlinux
-PRETTY_NAME="UBLinux Arc.01"
-VERSION_ID="Arc.01"
+VERSION="AR.01"
+VERSION_ID="ar.01"
+VERSION_CODENAME=andromeda
+ID_LIKE=arch
+PRETTY_NAME="UBLinux Adara Server AR.01 (Andromeda)"
+BUILD_ID="02.10.2019"
+ANSI_COLOR="1;31"
 HOME_URL="http://ublinux.com/"
-UBUNTU_CODENAME=andromeda
+
 ```
 ```
 NAME="UBLinux Adara"
-VARIANT="Desktop Enterprise"
-VERSION="Alp.04 (Aquila)"
 ID=ublinux
-ID_LIKE=alpinelinux
-PRETTY_NAME="UBLinux Alp.01"
-VERSION_ID="Alp.01"
+VARIANT="Desktop Enterprise"
+VERSION="AL.04"
+VERSION_ID="al.04"
+VERSION_CODENAME=aquila
+ID_LIKE=alpine
+PRETTY_NAME="UBLinux Desktop Enterprise AL.04 (Aquila)"
+BUILD_ID="04.10.2019"
+ANSI_COLOR="1;31"
 HOME_URL="http://ublinux.com/"
-UBUNTU_CODENAME=aquila
 ```
-Структура каталогов на носителе (локальный или сетевой):
-В корне накопителя или примонтированного каталога (в случае сетевой установки) содержится каталог "release", в этом каталоге содержатся папки, доступных для установки, редакций дистрибутивов. Папки имеют названия по имени 
+Структура каталогов на носителе (локальный или сетевой):  
+В корне накопителя или примонтированного каталога (в случае сетевой установки) содержится каталог или каталоги, доступных для установки, редакций дистрибутивов. Папки имеют названия по имени, версии ОС. Например, UBLinux Adara Server AR.01.
+
  
 
 Данные, передающиеся с клиентской машины на сервер:
