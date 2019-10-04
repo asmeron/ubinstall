@@ -7,7 +7,7 @@ Host="ublinux-sample"
 Domen="local.domean"
 User_name="superadmin"
 User_pass="123"
-lang="EN"
+lang="EN_en"
 
 lang_menu()
 {
@@ -18,8 +18,8 @@ lang_menu()
 	ch_lang=$ANSWER_OPTION
 
 	case $ch_lang in
-		"English") lang="EN" ;;
-		"Русский") lang="RU" ;;
+		"English") lang="EN_en" ;;
+		"Русский") lang="RU_ru" ;;
 	esac
 }
 
@@ -200,7 +200,7 @@ interactive_bootloader()
 }
 
 lang_menu
-. ./local/${lang}.sh
+. ./local/${lang}
 
 base_point=("$PDISK" "" "$PCONF" "" "$PCOM" "" "$PIB" "" "$PEX" "")
 
