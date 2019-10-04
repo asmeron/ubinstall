@@ -55,7 +55,7 @@ VERSION_CODENAME=andromeda
 ID_LIKE=arch
 PRETTY_NAME="UBLinux Adara Server AR.01 (Andromeda)"
 BUILD_ID="02.10.2019"
-ANSI_COLOR="1;34"
+ANSI_COLOR="1;31"
 HOME_URL="http://ublinux.com/"
 
 ```
@@ -69,7 +69,7 @@ VERSION_CODENAME=aquila
 ID_LIKE=alpine
 PRETTY_NAME="UBLinux Desktop Enterprise AL.04 (Aquila)"
 BUILD_ID="04.10.2019"
-ANSI_COLOR="1;34"
+ANSI_COLOR="1;31"
 HOME_URL="http://ublinux.com/"
 ```
 Структура каталогов на носителе (локальный или сетевой):  
