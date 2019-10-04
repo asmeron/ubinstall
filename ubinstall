@@ -1,0 +1,208 @@
+#!/bin/bash
+
+. ./libui-sh/libui.sh
+
+TITLE="UBLinux Installation"
+Host="ublinux-sample"
+Domen="local.domean"
+User_name="superadmin"
+User_pass="123"
+lang="EN"
+
+lang_menu()
+{
+	local lang_list ch_lang
+
+	lang_list=("English" "" "Русский" "")
+	_dia_ask_option no "Choose Language" "\n\nPlease choose language" required "${lang_list[@]}" || exit
+	ch_lang=$ANSWER_OPTION
+
+	case $ch_lang in
+		"English") lang="EN" ;;
+		"Русский") lang="RU" ;;
+	esac
+}
+
+base_menu()
+{
+
+	_dia_ask_option no "$HBM" "\n\n${ABM}." required "${base_point[@]}" || exit
+	answer=$ANSWER_OPTION
+
+	case $answer in
+		"$PDISK") interactive_disk ;;
+		"$PCOM") interactive_components ;;
+		"$PCONF") interactive_configurate ;;
+		"$PIB") interactive_bootloader ;;
+		"$PEX") exit;;
+	esac
+
+	base_menu
+
+}
+
+interactive_disk()
+{
+	local point choose_device
+	. ./modules/disk.sh
+
+
+	point=("$Auto" "" "$Manual" "")
+	_dia_ask_option no "$HMM" "\n\n${AMM}" required "${point[@]}" || base_menu
+	mode=$ANSWER_OPTION
+
+	get_list_block_device
+	list_dev_menu=("${list_dev[@]}" "$P_other" "" "$P_view" "")
+
+	choose_device()
+	{
+		_dia_ask_option no "$HDM" "\n\n${ADM}" required "${list_dev_menu[@]}" || interactive_disk
+		dev=$ANSWER_OPTION
+
+		if [ "$dev" == "$P_other" ]; then
+			_dia_ask_string "$MD" "/dev/sda" || choose_device
+			dev=$ANSWER_STRING
+		fi
+
+		if [ "$dev" == "$P_view" ]; then
+			_dia_notify "$(ls /dev)"
+			choose_device
+		fi
+	}
+
+	choose_device
+
+	manual_menu()
+	{
+		action_list=("$PPD" "" "$PFD" "" "$PCS" "" "$PD" "")
+		_dia_ask_option no "$HPM" "\n\n${APM}" required "${action_list[@]}" || choose_device
+		action=$ANSWER_OPTION
+
+		case $action in
+			"$PPD") manual_partitioning_disk;;
+			"$PFD") choose_filesystem;;
+			"$PCS") swap_menu;;
+			"$PD") base_menu;;
+		esac
+
+		manual_menu
+	}
+
+	swap_menu()
+	{
+		local size_list
+
+		size_list=("512" "" "1024" "" "2048" "" "$CUSTOM" "")
+		_dia_ask_option no "$HSM" "\n\n${ASM}" required "${size_list[@]}" || manual_menu
+		swap_size=$ANSWER_OPTION
+
+		if [ "$swap_size" == "$CUSTOM" ]; then
+			swap_dialog
+		else
+			create_swap $swap_size
+		fi
+	}
+
+	swap_dialog()
+	{
+		_dia_ask_number "$SD" "1" "" "1024" || manual_menu
+		swap_size=$ANSWER_NUMBER
+		create_swap $swap_size
+	}
+
+	choose_filesystem()
+	{
+		local fs i j list_dev_ch
+		j=0
+
+		fs_list=("ext4"  "" "fat32" "")
+		_dia_ask_option no "$HFM" "\n\n${AFM}." required "${fs_list[@]}" || manual_menu
+		fs=$ANSWER_OPTION
+
+		for (( i=0; i <= ${#list_dev[*]}; i=i+2 ))
+		do
+
+			list_dev_ch[$j]=${list_dev[$i]}
+			(( j++ ))
+			list_dev_ch[$j]=.
+			(( j++ ))
+			list_dev_ch[$j]=OFF
+			(( j++ ))
+
+		done
+		echo "${list_dev_ch[@]}" > log.txt
+
+		_dia_ask_checklist "$SP" 0 "${list_dev_ch[@]}" || manual_menu
+		pat=("${ANSWER_CHECKLIST[@]}")
+
+	}
+
+	interactive_auto_prepare()
+	{
+		_dia_inform "$PW"
+		auto_prepare_disk
+		_dia_notify  "$DP"
+	}
+
+	case $mode in
+		"$Auto") interactive_auto_prepare;;
+		"$Manual") manual_menu;;
+	esac
+
+	interactive_configurate
+
+}
+
+interactive_components()
+{
+	. ./modules/componets.sh
+
+	get_list_distrub
+	list_distrub=("${list_distrub[@]}" "$NI" "")
+	_dia_ask_option no "$HCD" "\n\n${ACD}." required "${list_distrub[@]}" || base_menu
+
+	distr=$ANSWER_OPTION
+	distr=$(echo $distr | cut -d' ' -f2)
+	distr=${distr,,}
+
+	get_list_components
+	_dia_ask_checklist "$SPA" 0 "${list_comp_name[@]}" || base_menu
+	comp=("${ANSWER_CHECKLIST[@]}")
+
+	if [ "$comp" != "" ]; then
+		install_components
+	fi
+
+	interactive_bootloader
+}
+
+interactive_configurate()
+{
+	_dia_ask_string "$HN" "ublinux-sample"
+	Host=$ANSWER_STRING
+
+	_dia_ask_string "$DM" "local.domean"
+	Domen=$ANSWER_STRING
+
+	_dia_ask_string "$UN" "superadmin"
+	User_name=$ANSWER_STRING
+
+	_dia_ask_string "$UP $User_name" "123"
+	User_pass=$ANSWER_STRING
+
+	interactive_components
+
+}
+
+interactive_bootloader()
+{
+	_dia_notify "Choose bootloader"
+}
+
+lang_menu
+. ./local/${lang}.sh
+
+base_point=("$PDISK" "" "$PCONF" "" "$PCOM" "" "$PIB" "" "$PEX" "")
+
+_dia_notify "$HELLO"
+base_menu
