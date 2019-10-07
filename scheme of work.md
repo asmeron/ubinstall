@@ -48,6 +48,19 @@ HOME_URL="http://ublinux.com/"
 ```
 NAME="UBLinux Adara"
 ID=ublinux
+VARIANT="Desktop Enterprise"
+VERSION="AL.04"
+VERSION_ID="al.04"
+VERSION_CODENAME=aquila
+ID_LIKE=alpine
+PRETTY_NAME="UBLinux Adara Desktop Enterprise AL.04 (Aquila)"
+BUILD_ID="04.10.2019"
+ANSI_COLOR="1;31"
+HOME_URL="http://ublinux.com/"
+```
+```
+NAME="UBLinux Adara"
+ID=ublinux
 VARIANT="Server"
 VERSION="AR.01"
 VERSION_ID="ar.01"
@@ -55,19 +68,6 @@ VERSION_CODENAME=andromeda
 ID_LIKE=arch
 PRETTY_NAME="UBLinux Adara Server AR.01 (Andromeda)"
 BUILD_ID="02.10.2019"
-ANSI_COLOR="1;31"
-HOME_URL="http://ublinux.com/"
-```
-```
-NAME="UBLinux Adara"
-ID=ublinux
-VARIANT="Desktop Enterprise"
-VERSION="AL.04"
-VERSION_ID="al.04"
-VERSION_CODENAME=aquila
-ID_LIKE=alpine
-PRETTY_NAME="UBLinux Desktop Enterprise AL.04 (Aquila)"
-BUILD_ID="04.10.2019"
 ANSI_COLOR="1;31"
 HOME_URL="http://ublinux.com/"
 ```
@@ -97,7 +97,7 @@ HOME_URL="http://ublinux.com/"
 ```
 В корне накопителя или примонтированного каталога (в случае сетевой установки) содержится каталог или каталоги, доступных для установки, редакций дистрибутивов. Папки имеют названия по имени, версии ОС. Например, UBLinux Adara Server AR.01 (Andromeda). В этих папках кроме файла os-release присутствуют файлы-модули ОС и файл key-license. Файл key-license необходим для процедуры сетевой установки системы и получения обновлений для системы.
 
-Файл генерируется случайным образом, для каждого экземпляра лицензии, через утилиту uuidgen с параметром r, на сервере или клиенте????? 
+Файл генерируется случайным образом, для каждого экземпляра лицензии, через утилиту uuidgen с параметром r, на сервере. 
 
 ***Структура файла key-license на клиенте:***
 ```
@@ -120,25 +120,25 @@ bb58e360-a00f-4834-9243-c352dc4bd4c5
 {
 "org": "John Doe",
 "date": "01.01.2020",
-"type": "03,02",
+"type": "03,02"
 },
 "62f662f8-a094-418e-9b99-54921b0511bf":
 {
 "org": "Vasya Pupkin",
 "date": "01.01.2025",
-"type": "02",
-}
+"type": "02"
+},
 "2e97d29a-dd50-49d3-9436-981e57125d49":
 {
 "org": "Tobias Boon",
 "date": "01.01.2022",
-"type": "11,12",
+"type": "11,12"
 },
 "e213effb-25d3-42c0-86a8-ffa0d029675b":
 {
 "org": "To Yama To Kanawa",
 "date": "01.01.2030",
-"type": "12",
+"type": "12"
 }
 }
 ```
