@@ -6,6 +6,7 @@
 
 Меню формируется из результатов обработки скрипта, который обходит папки, с редакциями ОС и проверятет в них наличие файлов os-release, получая названия ОС из значения переменной PRETTY_NAME.  
 ***Структура os-release файла в каталоге (один файл на каталог с редакцией системы):***
+/UBLinux Server AR.01/os-release
 ```
 NAME="UBLinux"
 ID=ublinux
@@ -19,6 +20,8 @@ BUILD_ID="02.10.2019"
 ANSI_COLOR="1;34"
 HOME_URL="http://ublinux.com/"
 ```
+
+/UBLinux Desktop Enterprise AL.02/os-release
 ```
 NAME="UBLinux"
 ID=ublinux
@@ -32,6 +35,8 @@ BUILD_ID="02.11.2019"
 ANSI_COLOR="1;34"
 HOME_URL="http://ublinux.com/"
 ```
+
+/UBLinux Desktop Basic DE.03/os-release
 ```
 NAME="UBLinux"
 ID=ublinux
@@ -45,6 +50,8 @@ BUILD_ID="02.12.2019"
 ANSI_COLOR="1;34"
 HOME_URL="http://ublinux.com/"
 ```
+
+/UBLinux Adara Desktop Enterprise AL.04/os-release
 ```
 NAME="UBLinux Adara"
 ID=ublinux
@@ -58,6 +65,8 @@ BUILD_ID="04.10.2019"
 ANSI_COLOR="1;31"
 HOME_URL="http://ublinux.com/"
 ```
+
+/UBLinux Adara Server AR.01/os-release
 ```
 NAME="UBLinux Adara"
 ID=ublinux
@@ -120,25 +129,33 @@ bb58e360-a00f-4834-9243-c352dc4bd4c5
 {
 "org": "John Doe",
 "date": "01.01.2020",
-"type": "03,02"
+"type": "03,02",
+"status": "unactivated",
+"pid": ""
 },
 "62f662f8-a094-418e-9b99-54921b0511bf":
 {
 "org": "Vasya Pupkin",
 "date": "01.01.2025",
-"type": "02"
+"type": "02",
+"status": "unactivated",
+"pid": ""
 },
 "2e97d29a-dd50-49d3-9436-981e57125d49":
 {
 "org": "Tobias Boon",
 "date": "01.01.2022",
-"type": "11,12"
+"type": "11,12",
+"status": "unactivated",
+"pid": ""
 },
 "e213effb-25d3-42c0-86a8-ffa0d029675b":
 {
 "org": "To Yama To Kanawa",
 "date": "01.01.2030",
-"type": "12"
+"type": "12",
+"status": "unactivated",
+"pid": ""
 }
 }
 ```
@@ -152,6 +169,8 @@ bb58e360-a00f-4834-9243-c352dc4bd4c5
 >   * 03 - UBLinux Server
 >   * 11 - UBLinux Adara Desktop Enterpise
 >   * 12 - UBLinux Adara Server
+> * "status" - статус активации (activated - активировано, unactivated - деактивировано)
+> * "pid" - персональный идентификатор рабочего места или сервера с активированной системой
 
 #### 4. Извлечь данные: дата окончания лицензии, тип лицензии;
 #### 5. Если дата окончания лицензии пройдена, формируем ответ клиенту, в котором содержится отказ;
