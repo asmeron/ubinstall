@@ -6,7 +6,7 @@
 
 Меню формируется из результатов обработки скрипта, который обходит папки, с редакциями ОС и проверятет в них наличие файлов os-release, получая названия ОС из значения переменной PRETTY_NAME.  
 ***Структура os-release файла в каталоге (один файл на каталог с редакцией системы):***  
-/UBLinux Server AR.01/os-release
+*/UBLinux Server AR.01/os-release*
 ```
 NAME="UBLinux"
 ID=ublinux
@@ -21,7 +21,7 @@ ANSI_COLOR="1;34"
 HOME_URL="http://ublinux.com/"
 ```
 
-/UBLinux Desktop Enterprise AL.02/os-release
+*/UBLinux Desktop Enterprise AL.02/os-release*
 ```
 NAME="UBLinux"
 ID=ublinux
@@ -36,7 +36,7 @@ ANSI_COLOR="1;34"
 HOME_URL="http://ublinux.com/"
 ```
 
-/UBLinux Desktop Basic DE.03/os-release
+*/UBLinux Desktop Basic DE.03/os-release*
 ```
 NAME="UBLinux"
 ID=ublinux
@@ -51,7 +51,7 @@ ANSI_COLOR="1;34"
 HOME_URL="http://ublinux.com/"
 ```
 
-/UBLinux Adara Desktop Enterprise AL.04/os-release
+*/UBLinux Adara Desktop Enterprise AL.04/os-release*
 ```
 NAME="UBLinux Adara"
 ID=ublinux
@@ -66,7 +66,7 @@ ANSI_COLOR="1;31"
 HOME_URL="http://ublinux.com/"
 ```
 
-/UBLinux Adara Server AR.01/os-release
+*/UBLinux Adara Server AR.01/os-release*
 ```
 NAME="UBLinux Adara"
 ID=ublinux
@@ -131,7 +131,7 @@ bb58e360-a00f-4834-9243-c352dc4bd4c5
 "date": "01.01.2020",
 "type": "03,02",
 "status": "unactivated",
-"pid": ""
+"hid": ""
 },
 "62f662f8-a094-418e-9b99-54921b0511bf":
 {
@@ -139,7 +139,7 @@ bb58e360-a00f-4834-9243-c352dc4bd4c5
 "date": "01.01.2025",
 "type": "02",
 "status": "unactivated",
-"pid": ""
+"hid": ""
 },
 "2e97d29a-dd50-49d3-9436-981e57125d49":
 {
@@ -147,7 +147,7 @@ bb58e360-a00f-4834-9243-c352dc4bd4c5
 "date": "01.01.2022",
 "type": "11,12",
 "status": "unactivated",
-"pid": ""
+"hid": ""
 },
 "e213effb-25d3-42c0-86a8-ffa0d029675b":
 {
@@ -155,7 +155,7 @@ bb58e360-a00f-4834-9243-c352dc4bd4c5
 "date": "01.01.2030",
 "type": "12",
 "status": "unactivated",
-"pid": ""
+"hid": ""
 }
 }
 ```
@@ -170,7 +170,7 @@ bb58e360-a00f-4834-9243-c352dc4bd4c5
 >   * 11 - UBLinux Adara Desktop Enterpise
 >   * 12 - UBLinux Adara Server
 > * "status" - статус активации (activated - активировано, unactivated - деактивировано)
-> * "pid" - персональный идентификатор рабочего места или сервера с активированной системой
+> * "hid" - персональный идентификатор рабочего места или сервера с активированной системой (hostid)
 
 #### 4. Извлечь данные: дата окончания лицензии, тип лицензии;
 #### 5. Если дата окончания лицензии пройдена, формируем ответ клиенту, в котором содержится отказ;
