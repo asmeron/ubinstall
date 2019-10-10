@@ -329,3 +329,56 @@ HOME_URL="http://ublinux.com/"
 |                      | /UBLinux Adara Server AR.04                 | os-release, модули ОС                 |
 |----------------------|---------------------------------------------|---------------------------------------|
 ```
+
+
+
+
+```
+{
+    "John Doe Ltd": [
+        {
+            "lic_key": "62f662f8-a094-418e-9b99-54921b0511bf",
+            "date": "01.01.2020",
+            "type": "03",
+            "lic_count": "498",
+            "007f0101": [                    
+                "PCname",
+                "WorkGroup",
+                "UserName"
+            ],                
+            "007f0102": [
+                "PCname2",
+                "WorkGroup2",
+                "UserName2"
+            ]            
+        },
+    ]    
+}
+***
+{
+"Uasya Pupkin": [
+        {
+            "lic_key": "62f662f8-a094-418e-9b99-54921b0522bf",
+            "date": "01.01.2025",
+            "type": "01",
+            "lic_count": "3",
+            "active_lic": [
+                {
+                    "007f1101": [
+                        "PCname",
+                        "WorkGroup",
+                        "UserName"
+                    ]
+                },
+                {
+                    "007f2102": [
+                        "PCname2",
+                        "WorkGroup2",
+                        "UserName2"
+                    ]
+                }
+            ]
+        }
+
+}
+```
