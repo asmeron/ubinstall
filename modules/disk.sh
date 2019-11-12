@@ -23,6 +23,7 @@ auto_prepare_disk()
 
 	echo ";" | sfdisk $dev >> log.txt
 	mkfs.ext4 -F ${dev}1 >> log.txt
+	e2label ${dev}1 ublinux
 
 }
 

@@ -1,6 +1,1 @@
-Xorg + Xfce4 | ./components/xorg ./components/xfce | [desktop]
-Xorg + KDE | ./components/xorg ./components/kde | [desktop]
-Office Pack Libre | ./components/libre | [desktop]
-Office Pack WPS | ./components/wps | [desktop]
-SSH | ./components/ssh | [server]
-CUPS | ./components/cups | [desktop][server]
+Полная установка | ./etc/components/system | [desktop][server]

@@ -6,7 +6,7 @@ inst()
 	
 	for i in $@
 	do
-
+		cp -R $1/* /mnt 
 		echo "Install $i" >> log.txt
 
 	done
@@ -53,7 +53,8 @@ install_components()
 {
 	local i j
 
-	inst ./components/kernel
+	mount "${1}1" /mnt
+
 	for j in "${comp[@]}"
 	do
 
@@ -68,5 +69,7 @@ install_components()
 		inst $path
 
 	done
+
+	genfstab -U /mnt >> /mnt/etc/fstab
 }
 
