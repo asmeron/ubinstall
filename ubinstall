@@ -66,6 +66,8 @@ interactive_disk()
 	{
 		_dia_ask_option no "$HDM" "\n\n${ADM}" required "${list_dev_menu[@]}" || interactive_disk
 		dev=$ANSWER_OPTION
+		flag=$(ind_disk $dev)
+		echo ${dev}${flag} >> log.txt 
 
 		if [ "$dev" == "$P_other" ]; then
 			_dia_ask_string "$MD" "/dev/sda" || choose_device
@@ -180,7 +182,7 @@ interactive_components()
 	if [ "$comp" != "" ]; then
 
 		_dia_inform "Install Components"
-		install_components $dev
+		install_components "${dev}${flag}"
 		_dia_notify "Install Complite!"
 	fi
 
