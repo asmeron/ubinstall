@@ -53,7 +53,7 @@ install_components()
 {
 	local i j
 
-	mount "${1}1" /mnt
+	mount "${1}" /mnt
 
 	for j in "${comp[@]}"
 	do
