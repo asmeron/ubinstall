@@ -3,13 +3,15 @@
 inst()
 {
 	local i
-	
-	for i in $@
-	do
-		cp -R $1/* /mnt 
-		echo "Install $i" >> log.txt
 
-	done
+	mount "${1}" /mnt
+
+	cd ..
+	cp -r * /mnt 
+	read
+	echo "Install system" >> log.txt
+
+	umount "${1}"
 }
 
 get_list_components()
@@ -49,27 +51,34 @@ get_list_distrub()
 	list_distrub=("Ublinux Desktop" "" "Ublinux Server" "")
 }
 
-install_components()
-{
-	local i j
+#install_components()
+#{
+	#local i j
 
-	mount "${1}" /mnt
+	#mount "${1}" /mnt
 
-	for j in "${comp[@]}"
-	do
+	#for j in "${comp[@]}"
+	#do
 
-		while [[ "${list_comp[$i]}" != "$j"* ]]; 
-		do
-			(( i++ ))
-		done
+		#while [[ "${list_comp[$i]}" != "$j"* ]]; 
+		#do
+			#(( i++ ))
+		#done
 	
-		path=$(echo "${list_comp[$i]}" | grep "$j" | cut -d'|' -f2)
-		path=${path/ /}
-		i=0
-		inst $path
+		#path=$(echo "${list_comp[$i]}" | grep "$j" | cut -d'|' -f2)
+		#path=${path/ /}
+		#i=0
+		#inst $path
 
-	done
+	#done
 
-	genfstab -U /mnt >> /mnt/etc/fstab
+	#genfstab -U /mnt >> /mnt/etc/fstab
+#}
+
+configurate_system()
+{
+	hostname $1
+
+	echo -e "$3/n$3" | passwd $2
+
 }
-

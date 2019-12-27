@@ -3,6 +3,8 @@
 get_list_block_device()
 {
 	local temp i
+	list_dev=""
+	list_dev_r=""
 	i=0
 	temp=(${list_dev_r[@]} $(ls /dev/sd*  && ls /dev/nvme*n*))
 	list_dev=()
@@ -34,7 +36,6 @@ auto_prepare_disk()
 
 	echo ";" | sfdisk $dev >> log.txt
 	mkfs.ext4 -F "${dev}${flag}" >> log.txt
-	e2label "${dev}${flag}" ublinux
 
 }
 

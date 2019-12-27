@@ -1,6 +1,7 @@
 #!/bin/bash
 
 . ./libui-sh/libui.sh
+. ./modules/disk.sh
 
 TITLE="UBLinux Installation"
 Host="ublinux-sample"
@@ -52,7 +53,6 @@ base_menu()
 interactive_disk()
 {
 	local point choose_device
-	. ./modules/disk.sh
 
 
 	point=("$Auto" "" "$Manual" "")
@@ -179,10 +179,15 @@ interactive_components()
 	_dia_ask_checklist "$SPA" 0 "${list_comp_name[@]}" || base_menu
 	comp=("${ANSWER_CHECKLIST[@]}")
 
+	get_list_block_device
+	list_dev_menu=("${list_dev[@]}" "$P_other" "" "$P_view" "")
+	_dia_ask_option no "$HDM" "\n\n${ADM}" required "${list_dev_menu[@]}" || base_menu
+	dev_c=$ANSWER_OPTION
+
 	if [ "$comp" != "" ]; then
 
 		_dia_inform "Install Components"
-		install_components "${dev}${flag}"
+		inst "${dev_c}"
 		_dia_notify "Install Complite!"
 	fi
 
@@ -194,8 +199,8 @@ interactive_configurate()
 	_dia_ask_string "$HN" "ublinux-sample"
 	Host=$ANSWER_STRING
 
-	_dia_ask_string "$DM" "local.domean"
-	Domen=$ANSWER_STRING
+	#_dia_ask_string "$DM" "local.domean"
+	#Domen=$ANSWER_STRING
 
 	#_dia_ask_string "$UN" "superadmin"
 	#User_name=$ANSWER_STRING
@@ -203,15 +208,43 @@ interactive_configurate()
 	_dia_ask_string "$UP root" "123"
 	User_pass=$ANSWER_STRING
 
+	configurate_system "$Host" root $User_pass
+
 	interactive_components
 
 }
 
 interactive_bootloader()
 {
+	get_list_block_device
+	list_dev_menu=("${list_dev[@]}" "$P_other" "" "$P_view" "")
+	_dia_ask_option no "$HDM" "\n\n${ADM}" required "${list_dev_menu[@]}" || base_menu
+	dev_d=$ANSWER_OPTION
+
+	flag=$(ind_disk $dev_d)
+	dev_r="${dev_d}${flag}"
+	sed=${dev_r//\//\\\/}
+
+	#list_dev_menu=("${list_dev[@]}" "$P_other" "" "$P_view" "")
+	#_dia_ask_option no "$HDM" "\n\n${ADM}" required "${list_dev_menu[@]}" || base_menu
+	#dev_r=$ANSWER_OPTION
+
 	_dia_inform "Install bootloader"
 
-	arch-chroot /mnt syslinux-install_update -i -a -m
+	echo -e "a\nw" | fdisk ${dev_d}
+	e2label ${dev_r} ublinux
+
+	mount ${dev_r} /mnt
+	extlinux -i /mnt/boot/syslinux
+
+	dd bs=440 count=1 conv=notrunc if=/mnt/ubinst/syslinux/mbr.bin of=${dev_d}
+
+	cp /mnt/ubinst/syslinux/syslinux_w.cfg /mnt/ubinst/syslinux/syslinux.cfg
+	sed -i 's/${dev}/'${sed}'/g' /mnt/ubinst/syslinux/syslinux.cfg
+	read
+	mv /mnt/ubinst/syslinux/syslinux.cfg /mnt/boot/syslinux/
+
+	umount ${dev_r}
 
 	_dia_notify "Install Complite!"
 
