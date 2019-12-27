@@ -1,0 +1,14 @@
+/dev/sda . OFF /dev/sda1 . OFF /dev/sda2 . OFF /dev/sdd . OFF  . OFF
+Install ./etc/components/system
+Install ./etc/components/system
+1
+/dev/sda1
+/dev/sda11
+Install ./etc/components/system
+Install ./etc/components/system
+Install ./etc/components/system
+Install ./etc/components/system
+Install ./etc/components/system
+Install ./etc/components/system
+Install ./etc/components/system
+Install ./etc/components/system
