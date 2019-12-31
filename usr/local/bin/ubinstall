@@ -1,8 +1,5 @@
 #!/bin/bash
 
-. ./libui-sh/libui.sh
-. ./modules/disk.sh
-
 TITLE="UBLinux Installation"
 Host="ublinux-sample"
 Domen="local.domean"
@@ -10,6 +7,145 @@ User_name="superadmin"
 User_pass="123"
 lang="EN"
 dev=""
+
+path_mount="/mnt/tgt"
+mount_usb="/mnt/usb"
+agreement="${path_usb}/usr/local/share/ubinstall/agreement/EULA.txt"
+log="/var/log/ubinstall.log"
+
+. ${mount_usb}/usr/local/lib/libui-sh/libui.sh
+
+get_list_block_device()
+{
+	local temp i
+	list_dev=""
+	list_dev_r=""
+	i=0
+	temp=(${list_dev_r[@]} $(ls /dev/sd*  && ls /dev/nvme*n*))
+	list_dev=()
+
+	for line in "${temp[@]}";
+	do
+
+		list_dev[$i]=$line
+		(( i++ ))
+		list_dev[$i]=""
+		(( i++ ))
+
+	done
+}
+
+ind_disk()
+{
+	if [[ $1 =~ 'sd' ]]; then
+		echo "1"
+	fi
+
+	if [[ $1 =~ 'nvme' ]]; then
+		echo "p1"
+	fi
+}
+
+auto_prepare_disk()
+{
+
+	echo ";" | sfdisk $dev >> $log
+	mkfs.ext4 -F "${dev}${flag}" >> $log
+
+}
+
+manual_partitioning_disk()
+{
+	cfdisk $dev
+}
+
+create_swap()
+{
+	echo "Create swap file $1 Mb" >> $log
+}
+
+inst()
+{
+	local i
+
+	mount "${1}" $path_mount
+
+	cd ${mount_usb}
+	cp -r * $path_mount
+	read
+	echo "Install system" >> $log
+
+	umount "${1}"
+}
+
+get_list_components()
+{
+	local i line
+
+	i=0
+
+	while read line;
+	do
+		list_comp[$i]=$(echo $line | grep "\[$distr\]" | cut -d'|' -f1,2)
+		
+		if [ "${list_comp[$i]}" != "" ]; then
+			(( i++ ))
+		fi
+
+	done < "./etc/components.txt"
+
+	i=0
+
+	for line in "${list_comp[@]}";
+	do
+
+		list_comp_name[$i]=$(echo $line | cut -d'|' -f1)
+		(( i++ ))
+		list_comp_name[$i]=.
+		(( i++ ))
+		list_comp_name[$i]=OFF
+		(( i++ ))
+
+	done
+}
+
+
+get_list_distrub()
+{
+	list_distrub=("Ublinux Desktop" "" "Ublinux Server" "")
+}
+
+#install_components()
+#{
+	#local i j
+
+	#mount "${1}" /mnt
+
+	#for j in "${comp[@]}"
+	#do
+
+		#while [[ "${list_comp[$i]}" != "$j"* ]]; 
+		#do
+			#(( i++ ))
+		#done
+	
+		#path=$(echo "${list_comp[$i]}" | grep "$j" | cut -d'|' -f2)
+		#path=${path/ /}
+		#i=0
+		#inst $path
+
+	#done
+
+	#genfstab -U /mnt >> /mnt/etc/fstab
+#}
+
+configurate_system()
+{
+	hostname $1
+
+	echo -e "$3/n$3" | passwd $2
+}
+
 
 lang_menu()
 {
@@ -27,7 +163,7 @@ lang_menu()
 
 license_agreement()
 {
-	license=$(cat agreement/EULA.txt)
+	license=$(cat $agreement)
 	_dia_notify "$license"
 }
 
@@ -67,7 +203,7 @@ interactive_disk()
 		_dia_ask_option no "$HDM" "\n\n${ADM}" required "${list_dev_menu[@]}" || interactive_disk
 		dev=$ANSWER_OPTION
 		flag=$(ind_disk $dev)
-		echo ${dev}${flag} >> log.txt 
+		echo ${dev}${flag} >> $log 
 
 		if [ "$dev" == "$P_other" ]; then
 			_dia_ask_string "$MD" "/dev/sda" || choose_device
@@ -140,7 +276,7 @@ interactive_disk()
 			(( j++ ))
 
 		done
-		echo "${list_dev_ch[@]}" > log.txt
+		echo "${list_dev_ch[@]}" > $log
 
 		_dia_ask_checklist "$SP" 0 "${list_dev_ch[@]}" || manual_menu
 		pat=("${ANSWER_CHECKLIST[@]}")
@@ -165,7 +301,6 @@ interactive_disk()
 
 interactive_components()
 {
-	. ./modules/componets.sh
 
 	get_list_distrub
 	list_distrub=("${list_distrub[@]}" "$NI" "")
@@ -190,7 +325,7 @@ interactive_components()
 		inst "${dev_c}"
 		_dia_notify "Install Complite!"
 	fi
-
+ 
 	interactive_bootloader
 }
 
@@ -216,6 +351,10 @@ interactive_configurate()
 
 interactive_bootloader()
 {
+
+	mbr_path="/boot/syslinux/bios/mbr.bin"
+	extlinux="/boot/syslinux/install/extlinux"
+
 	get_list_block_device
 	list_dev_menu=("${list_dev[@]}" "$P_other" "" "$P_view" "")
 	_dia_ask_option no "$HDM" "\n\n${ADM}" required "${list_dev_menu[@]}" || base_menu
@@ -234,15 +373,11 @@ interactive_bootloader()
 	echo -e "a\nw" | fdisk ${dev_d}
 	e2label ${dev_r} ublinux
 
-	mount ${dev_r} /mnt
-	extlinux -i /mnt/boot/syslinux
+	mount ${dev_r} $path_mount
+	$extlinux -i $path_mount/boot/syslinux
 
-	dd bs=440 count=1 conv=notrunc if=/mnt/ubinst/syslinux/mbr.bin of=${dev_d}
+	dd bs=440 count=1 conv=notrunc if=${mbr_path} of=${dev_d}
 
-	cp /mnt/ubinst/syslinux/syslinux_w.cfg /mnt/ubinst/syslinux/syslinux.cfg
-	sed -i 's/${dev}/'${sed}'/g' /mnt/ubinst/syslinux/syslinux.cfg
-	read
-	mv /mnt/ubinst/syslinux/syslinux.cfg /mnt/boot/syslinux/
 
 	umount ${dev_r}
 
@@ -251,7 +386,7 @@ interactive_bootloader()
 }
 
 lang_menu
-. ./local/${lang}.sh
+. ${path_usb}/usr/local/share/ubinstall/lang/${lang}.sh
 
 base_point=("$PDISK" "" "$PCONF" "" "$PCOM" "" "$PIB" "" "$PEX" "")
 

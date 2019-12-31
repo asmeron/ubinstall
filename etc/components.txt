@@ -1,1 +1,0 @@
-Полная установка | ./etc/components/system | [desktop][server]
