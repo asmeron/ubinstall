@@ -353,8 +353,8 @@ interactive_components()
 	#_dia_ask_checklist "$SPA" 0 "${list_comp_name[@]}" || base_menu
 	#comp=("${ANSWER_CHECKLIST[@]}")
 
-	get_list_block_device
-	list_dev_menu=("${list_dev[@]}" "$P_other" "" "$P_view" "")
+	get_list_logical_device
+	list_dev_menu=("${list_dev_logical[@]}" "$P_other" "" "$P_view" "")
 	_dia_ask_option no "$HDM" "\n\n${ADM}" required "${list_dev_menu[@]}" || base_menu
 	dev_c=$ANSWER_OPTION
 
