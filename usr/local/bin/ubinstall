@@ -323,7 +323,7 @@ interactive_disk()
 		pat=("${ANSWER_CHECKLIST[@]}")
 
 		mkfs."${fs}" -F "/dev/$pat"
-		read
+		manual_menu
 
 	}
 
