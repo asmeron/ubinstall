@@ -361,11 +361,11 @@ interactive_components()
 	#if [ "$comp" != "" ]; then
 
 		_dia_inform "Install Components"
-		inst "${dev_c}"
+		inst "/dev/${dev_c}"
 		_dia_notify "Install Complite!"
 	#fi
  
-	interactive_bootloader
+	base_menu
 }
 
 interactive_configurate()
