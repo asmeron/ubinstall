@@ -322,6 +322,8 @@ interactive_disk()
 		_dia_ask_checklist "$SP" 0 "${list_dev_ch[@]}" || manual_menu
 		pat=("${ANSWER_CHECKLIST[@]}")
 
+		mkfs."${fs}" -F $pat
+
 	}
 
 	interactive_auto_prepare()
