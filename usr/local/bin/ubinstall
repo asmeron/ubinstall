@@ -12,7 +12,7 @@ dir=$(realpath $0 | sed 's/\/bin\/ubinstall//g' )
 
 path_mount="/mnt/dst"
 agreement="${dir}/share/ubinstall/agreement/EULA.txt"
-log="/var/log/ubinstall.log"
+log="${dir}/share/ubinstall/log/ubinstall.log"
 
 . ${dir}/lib/libui-sh/libui.sh
 
@@ -22,7 +22,7 @@ get_list_block_device()
 	list_dev=""
 	list_dev_r=""
 	i=0
-	temp=(${list_dev_r[@]} $(ls /dev/sd*  && ls /dev/nvme*n*))
+	temp=(${list_dev_r[@]} $(ls /dev | grep sd[a-Z]$   && ls /dev | grep nvme[0-9]n[0-9]$ ))
 	list_dev=()
 
 	for line in "${temp[@]}";
@@ -32,6 +32,27 @@ get_list_block_device()
 		(( i++ ))
 		list_dev[$i]=""
 		(( i++ ))
+
+	done
+}
+
+get_list_logical_device()
+{
+	local temp i
+	list_dev_logical=""
+	list_dev_logical_r=""
+	i=0
+	temp=(${list_dev_logical_r[@]} $(ls /dev | grep sd[a-Z][0-9]   && ls /dev | grep nvme[0-9]n[0-9]p[0-9] ))
+	list_dev_logical=()
+
+	for line in "${temp[@]}";
+	do
+
+		list_dev_logical[$i]=$line
+		(( i++ ))
+		list_dev_logical[$i]=""
+		(( i++ ))
+		echo "$line" >> $log
 
 	done
 }
@@ -198,6 +219,8 @@ base_menu()
 
 choose_device()
 	{
+		get_list_block_device
+		list_dev_menu=("${list_dev[@]}" "$P_other" "" "$P_view" "")
 		_dia_ask_option no "$HDM" "\n\n${ADM}" required "${list_dev_menu[@]}" || interactive_disk
 		dev=$ANSWER_OPTION
 		flag=$(ind_disk $dev)
@@ -214,6 +237,15 @@ choose_device()
 		fi
 	}
 
+choose_logical_device()
+	{
+		get_list_logical_device
+		list_dev_log_menu=("${list_dev[@]}" "$P_other" "" "$P_view" "")
+		_dia_ask_option no "$HDM" "\n\n${ADM}" required "${list_dev_log_menu[@]}" || interactive_disk
+		dev_l=$ANSWER_OPTION
+
+	}
+
 interactive_disk()
 {
 	local point choose_device
@@ -224,14 +256,11 @@ interactive_disk()
 	#mode=$ANSWER_OPTION
 	mode="$Manual"
 
-	get_list_block_device
-	list_dev_menu=("${list_dev[@]}" "$P_other" "" "$P_view" "")
-
 
 	manual_menu()
 	{
 		action_list=("$PPD" "" "$PFD" "" "$PCS" "" "$PD" "")
-		_dia_ask_option no "$HPM" "\n\n${APM}" required "${action_list[@]}" || choose_device
+		_dia_ask_option no "$HPM" "\n\n${APM}" required "${action_list[@]}" || base_menu
 		action=$ANSWER_OPTION
 
 		case $action in
@@ -272,14 +301,16 @@ interactive_disk()
 		local fs i j list_dev_ch
 		j=0
 
+		get_list_logical_device
+
 		fs_list=("ext4"  "" "fat32" "")
 		_dia_ask_option no "$HFM" "\n\n${AFM}." required "${fs_list[@]}" || manual_menu
 		fs=$ANSWER_OPTION
 
-		for (( i=0; i <= ${#list_dev[*]}; i=i+2 ))
+		for (( i=0; i <= ${#list_dev_logical[*]}; i=i+2 ))
 		do
 
-			list_dev_ch[$j]=${list_dev[$i]}
+			list_dev_ch[$j]=${list_dev_logical[$i]}
 			(( j++ ))
 			list_dev_ch[$j]=.
 			(( j++ ))
@@ -287,7 +318,6 @@ interactive_disk()
 			(( j++ ))
 
 		done
-		echo "${list_dev_ch[@]}" > $log
 
 		_dia_ask_checklist "$SP" 0 "${list_dev_ch[@]}" || manual_menu
 		pat=("${ANSWER_CHECKLIST[@]}")
