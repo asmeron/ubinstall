@@ -84,7 +84,7 @@ manual_partitioning_disk()
 
 	case $mode1 in
 		"$Auto") interactive_auto_prepare;;
-		"$Manual") cfdisk $dev;;
+		"$Manual") cfdisk /dev/$dev;;
 	esac
 	
 }
