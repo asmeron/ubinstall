@@ -71,8 +71,7 @@ ind_disk()
 auto_prepare_disk()
 {
 
-	echo ";" | sfdisk $dev >> $log
-	mkfs.ext4 -F "${dev}${flag}" >> $log
+	echo ";" | sfdisk "/dev/$dev" >> $log
 
 }
 
@@ -400,7 +399,7 @@ interactive_bootloader()
 	get_list_block_device
 	list_dev_menu=("${list_dev[@]}" "$P_other" "" "$P_view" "")
 	_dia_ask_option no "$HDM" "\n\n${ADM}" required "${list_dev_menu[@]}" || base_menu
-	dev_d=$ANSWER_OPTION
+	dev_d=/dev/$ANSWER_OPTION
 
 	flag=$(ind_disk $dev_d)
 	dev_r="${dev_d}${flag}"
@@ -419,7 +418,7 @@ interactive_bootloader()
 	$extlinux -i $path_mount/boot/syslinux
 	read
 
-	dd bs=440 count=1 conv=notrunc if=${mbr_path} of=${dev_d}5
+	dd bs=440 count=1 conv=notrunc if=${mbr_path} of=${dev_d}
 
 	umount ${dev_r}
 
