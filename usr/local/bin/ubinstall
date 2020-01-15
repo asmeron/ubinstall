@@ -408,6 +408,9 @@ interactive_bootloader()
 	dev_r="${dev_d}${flag}"
 	sed=${dev_r//\//\\\/}
 
+	echo -e "dev_d = ${dev_d}\ndev_r = ${dev_r}"
+	read
+
 	#list_dev_menu=("${list_dev[@]}" "$P_other" "" "$P_view" "")
 	#_dia_ask_option no "$HDM" "\n\n${ADM}" required "${list_dev_menu[@]}" || base_menu
 	#dev_r=$ANSWER_OPTION
@@ -415,12 +418,17 @@ interactive_bootloader()
 	_dia_inform "Install bootloader"
 
 	echo -e "a\nw" | fdisk ${dev_d}
+	read
 	e2label ${dev_r} ublinux
+	read
 
 	mount ${dev_r} $path_mount
+	read
 	$extlinux -i $path_mount/boot/syslinux
+	read
 
 	dd bs=440 count=1 conv=notrunc if=${mbr_path} of=${dev_d}
+	read
 
 	umount ${dev_r}
 
