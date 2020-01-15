@@ -396,8 +396,8 @@ interactive_configurate()
 interactive_bootloader()
 {
 
-	mbr_path="$path_mount/boot/syslinux/bios/mbr.bin"
-	extlinux="$path_mount/boot/syslinux/install/extlinux"
+	mbr_path="$path_copy/boot/syslinux/bios/mbr.bin"
+	extlinux="$path_copy/boot/syslinux/install/extlinux"
 
 	get_list_block_device
 	list_dev_menu=("${list_dev[@]}" "$P_other" "" "$P_view" "")
@@ -408,8 +408,7 @@ interactive_bootloader()
 	dev_r="${dev_d}${flag}"
 	sed=${dev_r//\//\\\/}
 
-	echo -e "dev_d = ${dev_d}\ndev_r = ${dev_r}"
-	read
+	mkdir $path_mount
 
 	#list_dev_menu=("${list_dev[@]}" "$P_other" "" "$P_view" "")
 	#_dia_ask_option no "$HDM" "\n\n${ADM}" required "${list_dev_menu[@]}" || base_menu
@@ -418,17 +417,12 @@ interactive_bootloader()
 	_dia_inform "Install bootloader"
 
 	echo -e "a\nw" | fdisk ${dev_d}
-	read
 	e2label ${dev_r} ublinux
-	read
 
 	mount ${dev_r} $path_mount
-	read
 	$extlinux -i $path_mount/boot/syslinux
-	read
 
 	dd bs=440 count=1 conv=notrunc if=${mbr_path} of=${dev_d}
-	read
 
 	umount ${dev_r}
 
