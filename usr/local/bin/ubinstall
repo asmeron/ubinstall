@@ -11,6 +11,7 @@ dev=""
 dir=$(realpath $0 | sed 's/\/bin\/ubinstall//g' )
 
 path_mount="/mnt/dst"
+path_copy="/memory/data/from/0"
 agreement="${dir}/share/ubinstall/agreement/EULA.txt"
 log="${dir}/share/ubinstall/log/ubinstall.log"
 
@@ -18,7 +19,7 @@ log="${dir}/share/ubinstall/log/ubinstall.log"
 
 get_list_block_device()
 {
-	local temp i
+	local temp i model size
 	list_dev=""
 	list_dev_r=""
 	i=0
@@ -27,8 +28,10 @@ get_list_block_device()
 
 	for line in "${temp[@]}";
 	do
+		model=$(fdisk -l /dev/$line | grep model | cut -d":" -f2 )
+		size=$(fdisk -l /dev/$line | grep iB | cut -d' ' -f3,4 | cut -d',' -f1,2 )
 
-		list_dev[$i]=$line
+		list_dev[$i]="${line}${model} ${size}"
 		(( i++ ))
 		list_dev[$i]=""
 		(( i++ ))
@@ -100,8 +103,8 @@ inst()
 	mkdir $path_mount
 	mount "${1}" $path_mount
 
-	cd ${dir}
-	cd ../..
+	cd $path_copy
+
 	cp -r * $path_mount
 	echo "Install system" >> $log
 
@@ -221,7 +224,7 @@ choose_device()
 		get_list_block_device
 		list_dev_menu=("${list_dev[@]}" "$P_other" "" "$P_view" "")
 		_dia_ask_option no "$HDM" "\n\n${ADM}" required "${list_dev_menu[@]}" || interactive_disk
-		dev=$ANSWER_OPTION
+		dev=$(echo $ANSWER_OPTION | cut -d' ' -f1)
 		flag=$(ind_disk $dev)
 		echo ${dev}${flag} >> $log 
 
@@ -321,7 +324,7 @@ interactive_disk()
 		_dia_ask_checklist "$SP" 0 "${list_dev_ch[@]}" || manual_menu
 		pat=("${ANSWER_CHECKLIST[@]}")
 
-		mkfs."${fs}" -F "/dev/$pat"
+		mkfs."${fs}" -F "/dev/$pat" > /dev/null
 		manual_menu
 
 	}
@@ -399,7 +402,7 @@ interactive_bootloader()
 	get_list_block_device
 	list_dev_menu=("${list_dev[@]}" "$P_other" "" "$P_view" "")
 	_dia_ask_option no "$HDM" "\n\n${ADM}" required "${list_dev_menu[@]}" || base_menu
-	dev_d=/dev/$ANSWER_OPTION
+	dev_d=$(echo /dev/$ANSWER_OPTION | cut -d' ' -f1) 
 
 	flag=$(ind_disk $dev_d)
 	dev_r="${dev_d}${flag}"
@@ -416,7 +419,6 @@ interactive_bootloader()
 
 	mount ${dev_r} $path_mount
 	$extlinux -i $path_mount/boot/syslinux
-	read
 
 	dd bs=440 count=1 conv=notrunc if=${mbr_path} of=${dev_d}
 
