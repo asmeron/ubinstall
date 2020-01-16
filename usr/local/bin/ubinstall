@@ -105,14 +105,31 @@ create_swap()
 
 inst()
 {
-	local i
+	local i size cp percent
 
 	mkdir $path_mount
 	mount "${1}" $path_mount
 
 	cd $path_copy
+	
 
-	cp -r * $path_mount
+	#cp -r * $path_mount
+
+	i=0
+	size=$(echo $(du -s .) | cut -d' ' -f1)
+
+	cp -R * $path_mount &
+
+	while [ $i -lt 100 ]
+	do
+		size_t=$(echo $(du -s $path_mount) | cut -d' ' -f1)
+		i=$(percent $size $size_t)
+		(( i++ ))
+
+		echo $i | dialog --gauge "Install Components" 6 50 0
+		sleep 0.8
+	done
+
 	echo "Install system" >> $log
 
 	umount "${1}"
@@ -178,6 +195,15 @@ get_list_distrub()
 
 	#genfstab -U /mnt >> /mnt/etc/fstab
 #}
+
+percent()
+{
+	local per
+
+	let "per=$2*100/$1"
+
+	echo $per
+}
 
 configurate_system()
 {
@@ -393,7 +419,6 @@ interactive_components()
 	dev_c=$ANSWER_OPTION
 
 
-	_dia_inform "Install Components"
 	inst "/dev/${dev_c}"
 	_dia_notify "Install Complite!"
  
@@ -461,3 +486,6 @@ base_point=("$PDISK" "" "$PCOM" "" "$PCONF" "" "$PIB" "" "$PEX" "")
 _dia_notify "$HELLO"
 license_agreement
 base_menu
+
+clear
+
