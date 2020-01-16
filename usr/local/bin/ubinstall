@@ -174,9 +174,42 @@ get_list_distrub()
 
 configurate_system()
 {
-	hostname $1
 
-	echo -e "$3/n$3" | passwd $2
+	local file_system path_root path_shadow path_temp
+
+	path_root="${path_mount}/ublinux/rootcopy"
+	path_shadow="/etc/shadow"
+	path_temp="/tmp/shadow"
+
+	get_list_logical_device
+	list_dev_menu=("${list_dev_logical[@]}")
+	_dia_ask_option no "$HDM" "\n\n${ADM}" required "${list_dev_menu[@]}" || base_menu
+	dev_c=/dev/$ANSWER_OPTION
+
+	mkdir $path_mount
+	mount ${dev_c} $path_mount
+
+	if ! [ -d $path_root ]; then
+		_dia_notify "Not Correct OS"
+		return 1
+
+	fi
+
+	cd $path_root
+	mkdir etc
+	touch etc/hostname
+	echo $1 > etc/hostname
+	cd ${dir}
+
+	cp $path_shadow /tmp
+	echo -e "${3}\n${3}" | passwd $2
+
+	cp $path_shadow $path_root/etc
+	cp $path_temp /etc
+	rm $path_temp
+
+	umount ${dev_c}
+	_dia_notify "System Configurate"
 }
 
 
@@ -346,29 +379,16 @@ interactive_disk()
 interactive_components()
 {
 
-	#get_list_distrub
-	#list_distrub=("${list_distrub[@]}" "$NI" "")
-	#_dia_ask_option no "$HCD" "\n\n${ACD}." required "${list_distrub[@]}" || base_menu
-
-	#distr=$ANSWER_OPTION
-	#distr=$(echo $distr | cut -d' ' -f2)
-	#distr=${distr,,}
-
-	#get_list_components
-	#_dia_ask_checklist "$SPA" 0 "${list_comp_name[@]}" || base_menu
-	#comp=("${ANSWER_CHECKLIST[@]}")
 
 	get_list_logical_device
 	list_dev_menu=("${list_dev_logical[@]}" "$P_other" "" "$P_view" "")
 	_dia_ask_option no "$HDM" "\n\n${ADM}" required "${list_dev_menu[@]}" || base_menu
 	dev_c=$ANSWER_OPTION
 
-	#if [ "$comp" != "" ]; then
 
-		_dia_inform "Install Components"
-		inst "/dev/${dev_c}"
-		_dia_notify "Install Complite!"
-	#fi
+	_dia_inform "Install Components"
+	inst "/dev/${dev_c}"
+	_dia_notify "Install Complite!"
  
 	base_menu
 }
@@ -384,12 +404,12 @@ interactive_configurate()
 	#_dia_ask_string "$UN" "superadmin"
 	#User_name=$ANSWER_STRING
 
-	_dia_ask_string "$UP root" "123"
-	User_pass=$ANSWER_STRING
+	ANSWER=$(_dia_dialog --passwordbox  "$UP superadmin" 8 65)
+	User_pass=$ANSWER
 
-	configurate_system "$Host" root $User_pass
+	configurate_system "$Host" superadmin "${User_pass}"
 
-	interactive_components
+	base_menu
 
 }
 
@@ -410,24 +430,15 @@ interactive_bootloader()
 
 	mkdir $path_mount
 
-	#list_dev_menu=("${list_dev[@]}" "$P_other" "" "$P_view" "")
-	#_dia_ask_option no "$HDM" "\n\n${ADM}" required "${list_dev_menu[@]}" || base_menu
-	#dev_r=$ANSWER_OPTION
-
 	_dia_inform "Install bootloader"
 
 	echo -e "a\nw" | fdisk ${dev_d}
-	read
 	e2label ${dev_r} ublinux
-	read
 
 	mount ${dev_r} $path_mount
-	read
 	$extlinux -i $path_mount/boot/syslinux
-	read
 
 	dd bs=440 count=1 conv=notrunc if=${mbr_path} of=${dev_d}
-	read
 
 	umount ${dev_r}
 
@@ -438,7 +449,7 @@ interactive_bootloader()
 lang_menu
 . ${dir}/share/ubinstall/lang/${lang}.sh
 
-base_point=("$PDISK" "" "$PCONF" "" "$PCOM" "" "$PIB" "" "$PEX" "")
+base_point=("$PDISK" "" "$PCOM" "" "$PCONF" "" "$PIB" "" "$PEX" "")
 
 _dia_notify "$HELLO"
 license_agreement
