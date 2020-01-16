@@ -17,6 +17,13 @@ log="${dir}/share/ubinstall/log/ubinstall.log"
 
 . ${dir}/lib/libui-sh/libui.sh
 
+rules=$(whoami)
+
+if [ "$rules" != "root" ]; then
+	_dia_notify "Required root!"
+	exit
+fi
+
 get_list_block_device()
 {
 	local temp i model size
