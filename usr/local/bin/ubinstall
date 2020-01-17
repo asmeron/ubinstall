@@ -48,7 +48,7 @@ get_list_block_device()
 
 get_list_logical_device()
 {
-	local temp i
+	local temp i model size
 	list_dev_logical=""
 	list_dev_logical_r=""
 	i=0
@@ -58,7 +58,10 @@ get_list_logical_device()
 	for line in "${temp[@]}";
 	do
 
-		list_dev_logical[$i]=$line
+		model=$(fdisk -l $(echo /dev/$line | grep -o /dev/sd[a-Z]) | grep model | cut -d":" -f2 )
+		size=$(fdisk -l /dev/$line | grep iB | cut -d' ' -f3,4 | cut -d',' -f1,2 )
+
+		list_dev_logical[$i]="${line}${model} $size"
 		(( i++ ))
 		list_dev_logical[$i]=""
 		(( i++ ))
@@ -217,7 +220,7 @@ configurate_system()
 	get_list_logical_device
 	list_dev_menu=("${list_dev_logical[@]}")
 	_dia_ask_option no "$HDM" "\n\n${ADM}" required "${list_dev_menu[@]}" || base_menu
-	dev_c=/dev/$ANSWER_OPTION
+	dev_c=/dev/$(echo $ANSWER_OPTION | cut -d' ' -f1)
 
 	mkdir $path_mount
 	mount ${dev_c} $path_mount
@@ -310,7 +313,7 @@ choose_logical_device()
 		get_list_logical_device
 		list_dev_log_menu=("${list_dev[@]}" "$P_other" "" "$P_view" "")
 		_dia_ask_option no "$HDM" "\n\n${ADM}" required "${list_dev_log_menu[@]}" || interactive_disk
-		dev_l=$ANSWER_OPTION
+		dev_l=$(echo $ANSWER_OPTION | cut -d' ' -f1)
 
 	}
 
@@ -373,7 +376,7 @@ interactive_disk()
 
 		fs_list=("ext4"  "" "fat32" "")
 		_dia_ask_option no "$HFM" "\n\n${AFM}." required "${fs_list[@]}" || manual_menu
-		fs=$ANSWER_OPTION
+		fs=$(echo $ANSWER_OPTION | cut -d' ' -f1)
 
 		for (( i=0; i <= ${#list_dev_logical[*]}; i=i+2 ))
 		do
@@ -388,7 +391,7 @@ interactive_disk()
 		done
 
 		_dia_ask_checklist "$SP" 0 "${list_dev_ch[@]}" || manual_menu
-		pat=("${ANSWER_CHECKLIST[@]}")
+		pat=("$(echo ${ANSWER_CHECKLIST[@]} | cut -d' ' -f1)")
 
 		mkfs."${fs}" -F "/dev/$pat" > /dev/null
 		manual_menu
@@ -416,7 +419,7 @@ interactive_components()
 	get_list_logical_device
 	list_dev_menu=("${list_dev_logical[@]}" "$P_other" "" "$P_view" "")
 	_dia_ask_option no "$HDM" "\n\n${ADM}" required "${list_dev_menu[@]}" || base_menu
-	dev_c=$ANSWER_OPTION
+	dev_c=$(echo $ANSWER_OPTION | cut -d' ' -f1)
 
 
 	inst "/dev/${dev_c}"
@@ -436,8 +439,8 @@ interactive_configurate()
 	#_dia_ask_string "$UN" "superadmin"
 	#User_name=$ANSWER_STRING
 
-	ANSWER=$(_dia_dialog --passwordbox  "$UP superadmin" 8 65)
-	User_pass=$ANSWER
+	_dia_ask_string "$UP superadmin" "123"
+	User_pass=$ANSWER_STRING
 
 	configurate_system "$Host" superadmin "${User_pass}"
 
@@ -460,19 +463,19 @@ interactive_bootloader()
 	dev_r="${dev_d}${flag}"
 	sed=${dev_r//\//\\\/}
 
-	mkdir $path_mount
+	mkdir $path_mount > /dev/null
 
 	_dia_inform "Install bootloader"
 
 	echo -e "a\nw" | fdisk ${dev_d}
 	e2label ${dev_r} ublinux
 
-	mount ${dev_r} $path_mount
-	$extlinux -i $path_mount/boot/syslinux
+	mount ${dev_r} $path_mount > /dev/null
+	$extlinux -i $path_mount/boot/syslinux > /dev/null
 
-	dd bs=440 count=1 conv=notrunc if=${mbr_path} of=${dev_d}
+	dd bs=440 count=1 conv=notrunc if=${mbr_path} of=${dev_d} > /dev/null
 
-	umount ${dev_r}
+	umount ${dev_r} > /dev/null
 
 	_dia_notify "Install Complite!"
 
