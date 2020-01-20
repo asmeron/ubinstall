@@ -24,7 +24,7 @@ if [ "$rules" != "root" ]; then
 	exit
 fi
 
-current=$(mount | grep "/[ ]" | grep -o /dev/[0-Z]* | cut -d'/' -f3 | rev | cut -c 2- | rev)
+current=$(mount | grep "$path_copy" | grep -o /dev/[0-Z]* | cut -d'/' -f3 | rev | cut -c 2- | rev)
 
 get_list_block_device()
 {
