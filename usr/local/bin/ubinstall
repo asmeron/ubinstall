@@ -24,13 +24,15 @@ if [ "$rules" != "root" ]; then
 	exit
 fi
 
+current=$(mount | grep "/[ ]" | grep -o /dev/[0-Z]* | cut -d'/' -f3 | rev | cut -c 2- | rev)
+
 get_list_block_device()
 {
 	local temp i model size
 	list_dev=""
 	list_dev_r=""
 	i=0
-	temp=(${list_dev_r[@]} $(ls /dev | grep sd[a-Z]$   && ls /dev | grep nvme[0-9]n[0-9]$ ))
+	temp=(${list_dev_r[@]} $( (ls /dev | grep sd[a-Z]$   && ls /dev | grep nvme[0-9]n[0-9]$) | grep -v $current ))
 	list_dev=()
 
 	for line in "${temp[@]}";
@@ -52,7 +54,7 @@ get_list_logical_device()
 	list_dev_logical=""
 	list_dev_logical_r=""
 	i=0
-	temp=(${list_dev_logical_r[@]} $(ls /dev | grep sd[a-Z][0-9]   && ls /dev | grep nvme[0-9]n[0-9]p[0-9] ))
+	temp=(${list_dev_logical_r[@]} $( (ls /dev | grep sd[a-Z][0-9]   && ls /dev | grep nvme[0-9]n[0-9]p[0-9]) | grep -v $current ))
 	list_dev_logical=()
 
 	for line in "${temp[@]}";
