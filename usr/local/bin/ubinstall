@@ -24,6 +24,10 @@ if [ "$rules" != "root" ]; then
 	exit
 fi
 
+echo "Last Install" >$log
+echo "************" >>$log
+
+
 current=$(mount | grep "$path_copy" | grep -o /dev/[0-Z]* | cut -d'/' -f3 | rev | cut -c 2- | rev)
 
 get_list_block_device()
@@ -67,7 +71,6 @@ get_list_logical_device()
 		(( i++ ))
 		list_dev_logical[$i]=""
 		(( i++ ))
-		echo "$line" >> $log
 
 	done
 }
@@ -86,7 +89,7 @@ ind_disk()
 auto_prepare_disk()
 {
 
-	echo ";" | sfdisk "/dev/$dev" >> $log
+	echo ";" | sfdisk "/dev/$dev" >>$log
 
 }
 
@@ -105,7 +108,7 @@ manual_partitioning_disk()
 
 create_swap()
 {
-	echo "Create swap file $1 Mb" >> $log
+	echo "Create swap file $1 Mb" >>$log
 }
 
 inst()
@@ -135,7 +138,7 @@ inst()
 		sleep 0.8
 	done
 
-	echo "Install system" >> $log
+	echo "Install system" >>$log
 
 	umount "${1}"
 }
@@ -272,10 +275,17 @@ license_agreement()
 }
 
 
+
+end_work()
+{
+	clear
+	exit
+}
+
 base_menu()
 {
 
-	_dia_ask_option no "$HBM" "\n\n${ABM}." required "${base_point[@]}" || exit
+	_dia_ask_option no "$HBM" "\n\n${ABM}." required "${base_point[@]}" || end_work
 	answer=$ANSWER_OPTION
 
 	case $answer in
@@ -283,7 +293,7 @@ base_menu()
 		"$PCOM") interactive_components ;;
 		"$PCONF") interactive_configurate ;;
 		"$PIB") interactive_bootloader ;;
-		"$PEX") exit;;
+		"$PEX") end_work;;
 	esac
 
 	base_menu
@@ -297,14 +307,15 @@ choose_device()
 		_dia_ask_option no "$HDM" "\n\n${ADM}" required "${list_dev_menu[@]}" || interactive_disk
 		dev=$(echo $ANSWER_OPTION | cut -d' ' -f1)
 		flag=$(ind_disk $dev)
-		echo ${dev}${flag} >> $log 
 
 		if [ "$dev" == "$P_other" ]; then
 			_dia_ask_string "$MD" "/dev/sda" || choose_device
 			dev=$ANSWER_STRING
 		fi
 
-		if [ "$dev" == "$P_view" ]; then
+		buff=$(echo $P_view | cut -d' ' -f1)
+
+		if [ "$dev" == "$buff" ]; then
 			_dia_notify "$(ls /dev)"
 			choose_device
 		fi
@@ -395,7 +406,7 @@ interactive_disk()
 		_dia_ask_checklist "$SP" 0 "${list_dev_ch[@]}" || manual_menu
 		pat=("$(echo ${ANSWER_CHECKLIST[@]} | cut -d' ' -f1)")
 
-		mkfs."${fs}" -F "/dev/$pat" > /dev/null
+		mkfs."${fs}" -F "/dev/$pat" >>$log
 		manual_menu
 
 	}
@@ -465,19 +476,19 @@ interactive_bootloader()
 	dev_r="${dev_d}${flag}"
 	sed=${dev_r//\//\\\/}
 
-	mkdir $path_mount > /dev/null
+	mkdir $path_mount >>$log
 
 	_dia_inform "Install bootloader"
 
 	echo -e "a\nw" | fdisk ${dev_d}
 	e2label ${dev_r} ublinux
 
-	mount ${dev_r} $path_mount > /dev/null
-	$extlinux -i $path_mount/boot/syslinux > /dev/null
+	mount ${dev_r} $path_mount >>$log
+	$extlinux -i $path_mount/boot/syslinux >>$log
 
-	dd bs=440 count=1 conv=notrunc if=${mbr_path} of=${dev_d} > /dev/null
+	dd bs=440 count=1 conv=notrunc if=${mbr_path} of=${dev_d} >>$log
 
-	umount ${dev_r} > /dev/null
+	umount ${dev_r} >>$log
 
 	_dia_notify "Install Complite!"
 
@@ -491,6 +502,4 @@ base_point=("$PDISK" "" "$PCOM" "" "$PCONF" "" "$PIB" "" "$PEX" "")
 _dia_notify "$HELLO"
 license_agreement
 base_menu
-
-clear
 
