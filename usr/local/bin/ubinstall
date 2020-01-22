@@ -8,28 +8,68 @@ User_pass="123"
 lang="EN"
 dev=""
 
-path_mount="/mnt/tgt"
-mount_usb="/mnt/usb"
-agreement="${path_usb}/usr/local/share/ubinstall/agreement/EULA.txt"
+dir=$(realpath $0 | sed 's/\/bin\/ubinstall//g' )
+
+path_mount="/mnt/dst"
+path_copy="/memory/data/from/0"
+agreement="${dir}/share/ubinstall/agreement/EULA.txt"
 log="/var/log/ubinstall.log"
 
-. ${mount_usb}/usr/local/lib/libui-sh/libui.sh
+. ${dir}/lib/libui-sh/libui.sh
+
+rules=$(whoami)
+
+if [ "$rules" != "root" ]; then
+	_dia_notify "Required root!"
+	exit
+fi
+
+echo "Last Install" >$log
+echo "************" >>$log
+
+
+current=$(mount | grep "$path_copy" | grep -o /dev/[0-Z]* | cut -d'/' -f3 | rev | cut -c 2- | rev)
 
 get_list_block_device()
 {
-	local temp i
+	local temp i model size
 	list_dev=""
 	list_dev_r=""
 	i=0
-	temp=(${list_dev_r[@]} $(ls /dev/sd*  && ls /dev/nvme*n*))
+	temp=(${list_dev_r[@]} $( (ls /dev | grep sd[a-Z]$   && ls /dev | grep nvme[0-9]n[0-9]$) | grep -v $current ))
 	list_dev=()
 
 	for line in "${temp[@]}";
 	do
+		model=$(fdisk -l /dev/$line | grep model | cut -d":" -f2 )
+		size=$(fdisk -l /dev/$line | grep iB | cut -d' ' -f3,4 | cut -d',' -f1,2 )
 
-		list_dev[$i]=$line
+		list_dev[$i]="${line}${model} ${size}"
 		(( i++ ))
 		list_dev[$i]=""
+		(( i++ ))
+
+	done
+}
+
+get_list_logical_device()
+{
+	local temp i model size
+	list_dev_logical=""
+	list_dev_logical_r=""
+	i=0
+	temp=(${list_dev_logical_r[@]} $( (ls /dev | grep sd[a-Z][0-9]   && ls /dev | grep nvme[0-9]n[0-9]p[0-9]) | grep -v $current ))
+	list_dev_logical=()
+
+	for line in "${temp[@]}";
+	do
+
+		model=$(fdisk -l $(echo /dev/$line | grep -o /dev/sd[a-Z]) | grep model | cut -d":" -f2 )
+		size=$(fdisk -l /dev/$line | grep iB | cut -d' ' -f3,4 | cut -d',' -f1,2 )
+
+		list_dev_logical[$i]="${line}${model} $size"
+		(( i++ ))
+		list_dev_logical[$i]=""
 		(( i++ ))
 
 	done
@@ -49,65 +89,90 @@ ind_disk()
 auto_prepare_disk()
 {
 
-	echo ";" | sfdisk $dev >> $log
-	mkfs.ext4 -F "${dev}${flag}" >> $log
+	echo ";" | sfdisk "/dev/$dev" &>>$log
 
 }
 
 manual_partitioning_disk()
 {
-	cfdisk $dev
+	point=("$Auto" "" "$Manual" "")
+	_dia_ask_option no "$HMM" "\n\n${AMM}" required "${point[@]}" || base_menu
+	mode1=$ANSWER_OPTION
+
+	case $mode1 in
+		"$Auto") interactive_auto_prepare;;
+		"$Manual") cfdisk /dev/$dev;;
+	esac
+	
 }
 
 create_swap()
 {
-	echo "Create swap file $1 Mb" >> $log
+	echo "Create swap file $1 Mb" >>$log
 }
 
 inst()
 {
-	local i
+	local i size cp percent
 
+	mkdir $path_mount
 	mount "${1}" $path_mount
 
-	cd ${mount_usb}
-	cp -r * $path_mount
-	read
-	echo "Install system" >> $log
+	cd $path_copy
+	
+
+	#cp -r * $path_mount
+
+	i=0
+	size=$(echo $(du -s .) | cut -d' ' -f1)
+
+	cp -R * $path_mount &
+
+	while [ $i -lt 100 ]
+	do
+		size_t=$(echo $(du -s $path_mount) | cut -d' ' -f1)
+		i=$(percent $size $size_t)
+		(( i++ ))
+
+		echo $i | dialog --gauge "Install Components" 6 50 0
+		sleep 0.8
+	done
+
+	echo "Install system" >>$log
 
 	umount "${1}"
 }
 
-get_list_components()
-{
-	local i line
+#get_list_components()
+#{
+	#local i line
 
-	i=0
+	#i=0
 
-	while read line;
-	do
-		list_comp[$i]=$(echo $line | grep "\[$distr\]" | cut -d'|' -f1,2)
+	#while read line;
+	#do
+		#list_comp[$i]=$(echo $line | grep "\[$distr\]" | cut -d'|' -f1,2)
 		
-		if [ "${list_comp[$i]}" != "" ]; then
-			(( i++ ))
-		fi
+		#if [ "${list_comp[$i]}" != "" ]; then
+			#(( i++ ))
+		#fi
 
-	done < "./etc/components.txt"
+	#done < "./etc/components.txt"
 
-	i=0
+	#i=0
 
-	for line in "${list_comp[@]}";
-	do
+	#for line in "${list_comp[@]}";
+	#do
 
-		list_comp_name[$i]=$(echo $line | cut -d'|' -f1)
-		(( i++ ))
-		list_comp_name[$i]=.
-		(( i++ ))
-		list_comp_name[$i]=OFF
-		(( i++ ))
+		#list_comp_name[$i]=$(echo $line | cut -d'|' -f1)
+		#(( i++ ))
+		#list_comp_name[$i]=.
+		#(( i++ ))
+		#list_comp_name[$i]=OFF
+		#(( i++ ))
 
-	done
-}
+	#done
+#}
 
 
 get_list_distrub()
@@ -139,11 +204,53 @@ get_list_distrub()
 	#genfstab -U /mnt >> /mnt/etc/fstab
 #}
 
+percent()
+{
+	local per
+
+	let "per=$2*100/$1"
+
+	echo $per
+}
+
 configurate_system()
 {
-	hostname $1
 
-	echo -e "$3/n$3" | passwd $2
+	local file_system path_root path_shadow path_temp
+
+	path_root="${path_mount}/ublinux/rootcopy"
+	path_shadow="/etc/shadow"
+	path_temp="/tmp/shadow"
+
+	get_list_logical_device
+	list_dev_menu=("${list_dev_logical[@]}")
+	_dia_ask_option no "$HDM" "\n\n${ADM}" required "${list_dev_menu[@]}" || base_menu
+	dev_c=/dev/$(echo $ANSWER_OPTION | cut -d' ' -f1)
+
+	mkdir $path_mount
+	mount ${dev_c} $path_mount
+
+	if ! [ -d $path_root ]; then
+		_dia_notify "Not Correct OS"
+		return 1
+
+	fi
+
+	cd $path_root
+	mkdir etc
+	touch etc/hostname
+	echo $1 > etc/hostname
+	cd ${dir}
+
+	cp $path_shadow /tmp
+	echo -e "${3}\n${3}" | passwd $2
+
+	cp $path_shadow $path_root/etc
+	cp $path_temp /etc
+	rm $path_temp
+
+	umount ${dev_c}
+	_dia_notify "System Configurate"
 }
 
 
@@ -168,10 +275,17 @@ license_agreement()
 }
 
 
+
+end_work()
+{
+	clear
+	exit
+}
+
 base_menu()
 {
 
-	_dia_ask_option no "$HBM" "\n\n${ABM}." required "${base_point[@]}" || exit
+	_dia_ask_option no "$HBM" "\n\n${ABM}." required "${base_point[@]}" || end_work
 	answer=$ANSWER_OPTION
 
 	case $answer in
@@ -179,53 +293,63 @@ base_menu()
 		"$PCOM") interactive_components ;;
 		"$PCONF") interactive_configurate ;;
 		"$PIB") interactive_bootloader ;;
-		"$PEX") exit;;
+		"$PEX") end_work;;
 	esac
 
 	base_menu
 
 }
 
-interactive_disk()
-{
-	local point choose_device
-
-
-	point=("$Auto" "" "$Manual" "")
-	_dia_ask_option no "$HMM" "\n\n${AMM}" required "${point[@]}" || base_menu
-	mode=$ANSWER_OPTION
-
-	get_list_block_device
-	list_dev_menu=("${list_dev[@]}" "$P_other" "" "$P_view" "")
-
-	choose_device()
+choose_device()
 	{
+		get_list_block_device
+		list_dev_menu=("${list_dev[@]}" "$P_other" "" "$P_view" "")
 		_dia_ask_option no "$HDM" "\n\n${ADM}" required "${list_dev_menu[@]}" || interactive_disk
-		dev=$ANSWER_OPTION
+		dev=$(echo $ANSWER_OPTION | cut -d' ' -f1)
 		flag=$(ind_disk $dev)
-		echo ${dev}${flag} >> $log 
 
 		if [ "$dev" == "$P_other" ]; then
 			_dia_ask_string "$MD" "/dev/sda" || choose_device
 			dev=$ANSWER_STRING
 		fi
 
-		if [ "$dev" == "$P_view" ]; then
+		buff=$(echo $P_view | cut -d' ' -f1)
+
+		if [ "$dev" == "$buff" ]; then
 			_dia_notify "$(ls /dev)"
 			choose_device
 		fi
 	}
 
-	choose_device
+choose_logical_device()
+	{
+		get_list_logical_device
+		list_dev_log_menu=("${list_dev[@]}" "$P_other" "" "$P_view" "")
+		_dia_ask_option no "$HDM" "\n\n${ADM}" required "${list_dev_log_menu[@]}" || interactive_disk
+		dev_l=$(echo $ANSWER_OPTION | cut -d' ' -f1)
+
+	}
+
+interactive_disk()
+{
+	local point choose_device
+
+
+	#point=("$Auto" "" "$Manual" "")
+	#_dia_ask_option no "$HMM" "\n\n${AMM}" required "${point[@]}" || base_menu
+	#mode=$ANSWER_OPTION
+	mode="$Manual"
+
 
 	manual_menu()
 	{
 		action_list=("$PPD" "" "$PFD" "" "$PCS" "" "$PD" "")
-		_dia_ask_option no "$HPM" "\n\n${APM}" required "${action_list[@]}" || choose_device
+		_dia_ask_option no "$HPM" "\n\n${APM}" required "${action_list[@]}" || base_menu
 		action=$ANSWER_OPTION
 
 		case $action in
-			"$PPD") manual_partitioning_disk;;
+			"$PPD") choose_device || manual_menu
+					manual_partitioning_disk;;
 			"$PFD") choose_filesystem;;
 			"$PCS") swap_menu;;
 			"$PD") base_menu;;
@@ -261,14 +385,16 @@ interactive_disk()
 		local fs i j list_dev_ch
 		j=0
 
+		get_list_logical_device
+
 		fs_list=("ext4"  "" "fat32" "")
 		_dia_ask_option no "$HFM" "\n\n${AFM}." required "${fs_list[@]}" || manual_menu
-		fs=$ANSWER_OPTION
+		fs=$(echo $ANSWER_OPTION | cut -d' ' -f1)
 
-		for (( i=0; i <= ${#list_dev[*]}; i=i+2 ))
+		for (( i=0; i <= ${#list_dev_logical[*]}; i=i+2 ))
 		do
 
-			list_dev_ch[$j]=${list_dev[$i]}
+			list_dev_ch[$j]=${list_dev_logical[$i]}
 			(( j++ ))
 			list_dev_ch[$j]=.
 			(( j++ ))
@@ -276,10 +402,12 @@ interactive_disk()
 			(( j++ ))
 
 		done
-		echo "${list_dev_ch[@]}" > $log
 
 		_dia_ask_checklist "$SP" 0 "${list_dev_ch[@]}" || manual_menu
-		pat=("${ANSWER_CHECKLIST[@]}")
+		pat=("$(echo ${ANSWER_CHECKLIST[@]} | cut -d' ' -f1)")
+
+		mkfs."${fs}" -F "/dev/$pat" &>>$log
+		manual_menu
 
 	}
 
@@ -295,38 +423,22 @@ interactive_disk()
 		"$Manual") manual_menu;;
 	esac
 
-	interactive_configurate
-
 }
 
 interactive_components()
 {
 
-	get_list_distrub
-	list_distrub=("${list_distrub[@]}" "$NI" "")
-	_dia_ask_option no "$HCD" "\n\n${ACD}." required "${list_distrub[@]}" || base_menu
 
-	distr=$ANSWER_OPTION
-	distr=$(echo $distr | cut -d' ' -f2)
-	distr=${distr,,}
-
-	get_list_components
-	_dia_ask_checklist "$SPA" 0 "${list_comp_name[@]}" || base_menu
-	comp=("${ANSWER_CHECKLIST[@]}")
-
-	get_list_block_device
-	list_dev_menu=("${list_dev[@]}" "$P_other" "" "$P_view" "")
+	get_list_logical_device
+	list_dev_menu=("${list_dev_logical[@]}" "$P_other" "" "$P_view" "")
 	_dia_ask_option no "$HDM" "\n\n${ADM}" required "${list_dev_menu[@]}" || base_menu
-	dev_c=$ANSWER_OPTION
+	dev_c=$(echo $ANSWER_OPTION | cut -d' ' -f1)
 
-	if [ "$comp" != "" ]; then
 
-		_dia_inform "Install Components"
-		inst "${dev_c}"
-		_dia_notify "Install Complite!"
-	fi
+	inst "/dev/${dev_c}"
+	_dia_notify "Install Complite!"
  
-	interactive_bootloader
+	base_menu
 }
 
 interactive_configurate()
@@ -340,56 +452,54 @@ interactive_configurate()
 	#_dia_ask_string "$UN" "superadmin"
 	#User_name=$ANSWER_STRING
 
-	_dia_ask_string "$UP root" "123"
+	_dia_ask_string "$UP superadmin" "123"
 	User_pass=$ANSWER_STRING
 
-	configurate_system "$Host" root $User_pass
+	configurate_system "$Host" superadmin "${User_pass}"
 
-	interactive_components
+	base_menu
 
 }
 
 interactive_bootloader()
 {
 
-	mbr_path="/boot/syslinux/bios/mbr.bin"
-	extlinux="/boot/syslinux/install/extlinux"
+	mbr_path="$path_copy/boot/syslinux/bios/mbr.bin"
+	extlinux="$path_copy/boot/syslinux/install/extlinux"
 
 	get_list_block_device
 	list_dev_menu=("${list_dev[@]}" "$P_other" "" "$P_view" "")
 	_dia_ask_option no "$HDM" "\n\n${ADM}" required "${list_dev_menu[@]}" || base_menu
-	dev_d=$ANSWER_OPTION
+	dev_d=$(echo /dev/$ANSWER_OPTION | cut -d' ' -f1) 
 
 	flag=$(ind_disk $dev_d)
 	dev_r="${dev_d}${flag}"
 	sed=${dev_r//\//\\\/}
 
-	#list_dev_menu=("${list_dev[@]}" "$P_other" "" "$P_view" "")
-	#_dia_ask_option no "$HDM" "\n\n${ADM}" required "${list_dev_menu[@]}" || base_menu
-	#dev_r=$ANSWER_OPTION
+	mkdir $path_mount &>>$log
 
 	_dia_inform "Install bootloader"
 
-	echo -e "a\nw" | fdisk ${dev_d}
+	echo -e "a\nw" | fdisk ${dev_d} &>>$log
 	e2label ${dev_r} ublinux
 
-	mount ${dev_r} $path_mount
-	$extlinux -i $path_mount/boot/syslinux
+	mount ${dev_r} $path_mount &>>$log
+	$extlinux -i $path_mount/boot/syslinux &>>$log
 
-	dd bs=440 count=1 conv=notrunc if=${mbr_path} of=${dev_d}
+	dd bs=440 count=1 conv=notrunc if=${mbr_path} of=${dev_d} &>>$log
 
-
-	umount ${dev_r}
+	umount ${dev_r} &>>$log
 
 	_dia_notify "Install Complite!"
 
 }
 
 lang_menu
-. ${path_usb}/usr/local/share/ubinstall/lang/${lang}.sh
+. ${dir}/share/ubinstall/lang/${lang}.sh
 
-base_point=("$PDISK" "" "$PCONF" "" "$PCOM" "" "$PIB" "" "$PEX" "")
+base_point=("$PDISK" "" "$PCOM" "" "$PCONF" "" "$PIB" "" "$PEX" "")
 
 _dia_notify "$HELLO"
 license_agreement
 base_menu
+
