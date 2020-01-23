@@ -118,10 +118,8 @@ inst()
 	mkdir $path_mount
 	mount "${1}" $path_mount
 
+	current_path=$(pwd)
 	cd $path_copy
-	
-
-	#cp -r * $path_mount
 
 	i=0
 	size=$(echo $(du -s .) | cut -d' ' -f1)
@@ -141,6 +139,8 @@ inst()
 	echo "Install system" >>$log
 
 	umount "${1}"
+	rm $path_mount
+	cd $current_path
 }
 
 #get_list_components()
@@ -236,6 +236,7 @@ configurate_system()
 
 	fi
 
+	current_path=$(pwd)
 	cd $path_root
 	mkdir etc
 	touch etc/hostname
@@ -250,6 +251,8 @@ configurate_system()
 	rm $path_temp
 
 	umount ${dev_c}
+	rm $path_mount
+	cd $current_path
 	_dia_notify "System Configurate"
 }
 
@@ -489,6 +492,7 @@ interactive_bootloader()
 	dd bs=440 count=1 conv=notrunc if=${mbr_path} of=${dev_d} &>>$log
 
 	umount ${dev_r} &>>$log
+	rm $path_mount
 
 	_dia_notify "Install Complite!"
 
