@@ -488,7 +488,7 @@ interactive_bootloader()
 
 	mount ${dev_r} $path_mount &>>$log
 	$extlinux -i $path_mount/boot/syslinux &>>$log
-
+    dd bs=440 count=1 conv=notrunc if=/dev/null of=${dev_r}
 	dd bs=440 count=1 conv=notrunc if=${mbr_path} of=${dev_d} &>>$log
 
 	umount ${dev_r} &>>$log
